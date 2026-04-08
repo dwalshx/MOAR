@@ -84,35 +84,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LOG-01 | TBD | Pending |
-| LOG-02 | TBD | Pending |
-| LOG-03 | TBD | Pending |
-| LOG-04 | TBD | Pending |
-| LOG-05 | TBD | Pending |
-| LOG-06 | TBD | Pending |
-| WRK-01 | TBD | Pending |
-| WRK-02 | TBD | Pending |
-| WRK-03 | TBD | Pending |
-| WRK-04 | TBD | Pending |
-| WRK-05 | TBD | Pending |
-| WRK-06 | TBD | Pending |
-| FBK-01 | TBD | Pending |
-| FBK-02 | TBD | Pending |
-| FBK-03 | TBD | Pending |
-| FBK-04 | TBD | Pending |
-| FBK-05 | TBD | Pending |
-| HST-01 | TBD | Pending |
-| HST-02 | TBD | Pending |
-| HST-03 | TBD | Pending |
-| PLT-01 | TBD | Pending |
-| PLT-02 | TBD | Pending |
-| PLT-03 | TBD | Pending |
+| PLT-01 | Phase 1: Foundation | Pending |
+| PLT-02 | Phase 1: Foundation | Pending |
+| LOG-01 | Phase 2: Core Logging | Pending |
+| LOG-02 | Phase 2: Core Logging | Pending |
+| LOG-03 | Phase 2: Core Logging | Pending |
+| LOG-04 | Phase 2: Core Logging | Pending |
+| LOG-05 | Phase 2: Core Logging | Pending |
+| LOG-06 | Phase 2: Core Logging | Pending |
+| WRK-01 | Phase 3: Workouts & Templates | Pending |
+| WRK-02 | Phase 3: Workouts & Templates | Pending |
+| WRK-03 | Phase 3: Workouts & Templates | Pending |
+| WRK-04 | Phase 3: Workouts & Templates | Pending |
+| WRK-05 | Phase 3: Workouts & Templates | Pending |
+| WRK-06 | Phase 3: Workouts & Templates | Pending |
+| FBK-01 | Phase 4: Feedback & Comparison | Pending |
+| FBK-02 | Phase 4: Feedback & Comparison | Pending |
+| FBK-03 | Phase 4: Feedback & Comparison | Pending |
+| HST-01 | Phase 5: History & Charts | Pending |
+| HST-02 | Phase 5: History & Charts | Pending |
+| HST-03 | Phase 5: History & Charts | Pending |
+| FBK-04 | Phase 5: History & Charts | Pending |
+| FBK-05 | Phase 5: History & Charts | Pending |
+| PLT-03 | Phase 6: PWA Polish | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 after initial definition*
+*Last updated: 2026-04-08 after roadmap creation*
