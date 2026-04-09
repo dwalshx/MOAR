@@ -21,7 +21,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WRK-01**: User can create named workouts ("Full Body", "Push Day")
 - [x] **WRK-02**: User can repeat last workout with one tap (loads previous exercises + numbers)
 - [x] **WRK-03**: Templates auto-update when workout is modified (living templates)
-- [ ] **WRK-04**: User can add exercises mid-workout with freeform entry and autocomplete
+- [x] **WRK-04**: User can add exercises mid-workout with freeform entry and autocomplete
 - [x] **WRK-05**: User can start a new empty workout and name it
 - [x] **WRK-06**: Active workout recovers on app reload (no data loss mid-workout)
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WRK-01 | Phase 3: Workouts & Templates | Complete |
 | WRK-02 | Phase 3: Workouts & Templates | Complete |
 | WRK-03 | Phase 3: Workouts & Templates | Complete |
-| WRK-04 | Phase 3: Workouts & Templates | Pending |
+| WRK-04 | Phase 3: Workouts & Templates | Complete |
 | WRK-05 | Phase 3: Workouts & Templates | Complete |
 | WRK-06 | Phase 3: Workouts & Templates | Complete |
 | FBK-01 | Phase 4: Feedback & Comparison | Pending |

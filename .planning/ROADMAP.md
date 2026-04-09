@@ -65,8 +65,8 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — Service layer: new workoutService methods (template CRUD, recent workouts, volume) + formatter utilities with TDD
-- [ ] 03-02-PLAN.md — Editable WorkoutHeader with debounced name save, verify template upsert on finish
-- [ ] 03-03-PLAN.md — RecentWorkouts list on HomePage with one-tap Repeat flow and visual verification
+- [x] 03-02-PLAN.md — Editable WorkoutHeader with debounced name save, verify template upsert on finish
+- [x] 03-03-PLAN.md — RecentWorkouts list on HomePage with one-tap Repeat flow and visual verification
 
 **UI hint**: yes
 
