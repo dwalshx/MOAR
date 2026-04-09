@@ -61,7 +61,13 @@ Plans:
   3. User can add exercises mid-workout with freeform text entry and autocomplete from history
   4. Templates auto-update when the user modifies a workout (adds/removes exercises, changes order)
   5. Active workout state recovers fully on app reload (no data loss mid-workout)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Service layer: new workoutService methods (template CRUD, recent workouts, volume) + formatter utilities with TDD
+- [ ] 03-02-PLAN.md — Editable WorkoutHeader with debounced name save, verify template upsert on finish
+- [ ] 03-03-PLAN.md — RecentWorkouts list on HomePage with one-tap Repeat flow and visual verification
+
 **UI hint**: yes
 
 ### Phase 4: Feedback & Comparison
@@ -107,7 +113,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6
 |-------|----------------|--------|-----------|
 | 1. Foundation | 0/2 | Planning complete | - |
 | 2. Core Logging | 0/TBD | Not started | - |
-| 3. Workouts & Templates | 0/TBD | Not started | - |
+| 3. Workouts & Templates | 0/3 | Planning complete | - |
 | 4. Feedback & Comparison | 0/TBD | Not started | - |
 | 5. History & Charts | 0/TBD | Not started | - |
 | 6. PWA Polish | 0/TBD | Not started | - |
