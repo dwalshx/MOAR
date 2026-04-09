@@ -30,7 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. IndexedDB database is created with workout, exercise, and set tables on first load
   3. Navigation shell renders with route structure (home, active workout, history)
   4. Layout is mobile-first with tap-friendly sizing (44px+ touch targets)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Scaffold Vite project, install deps, Tailwind CSS 4 dark theme, Dexie data layer with tests
+- [ ] 01-02-PLAN.md — Navigation shell with React Router, bottom tab bar, mobile-first layout, page placeholders
+
 **UI hint**: yes
 
 ### Phase 2: Core Logging
@@ -100,7 +105,7 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/2 | Planning complete | - |
 | 2. Core Logging | 0/TBD | Not started | - |
 | 3. Workouts & Templates | 0/TBD | Not started | - |
 | 4. Feedback & Comparison | 0/TBD | Not started | - |
