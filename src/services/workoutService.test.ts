@@ -6,6 +6,7 @@ beforeEach(async () => {
   await db.workoutSets.clear();
   await db.workoutExercises.clear();
   await db.workouts.clear();
+  await db.workoutTemplates.clear();
 });
 
 describe('normalizeExerciseName', () => {
@@ -177,5 +178,163 @@ describe('getExerciseNames', () => {
     expect(names).toContain('Bench Press');
     // uniqueKeys returns unique values
     expect(names.filter(n => n === 'Squat').length).toBe(1);
+  });
+});
+
+describe('updateWorkoutName', () => {
+  it('changes workout name in DB', async () => {
+    const id = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(id, 'Push Day');
+    const workout = await db.workouts.get(id);
+    expect(workout!.name).toBe('Push Day');
+  });
+});
+
+describe('getWorkoutVolume', () => {
+  it('returns sum of weight * reps for all sets in a workout', async () => {
+    const wId = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(wId, 'squat');
+    const ex2 = await workoutService.addExercise(wId, 'bench press');
+    await workoutService.logSet(ex1, 100, 10); // 1000
+    await workoutService.logSet(ex1, 100, 8);  // 800
+    await workoutService.logSet(ex2, 50, 10);  // 500
+    const volume = await workoutService.getWorkoutVolume(wId);
+    expect(volume).toBe(2300);
+  });
+
+  it('returns 0 for workout with no sets', async () => {
+    const wId = await workoutService.startWorkout();
+    const volume = await workoutService.getWorkoutVolume(wId);
+    expect(volume).toBe(0);
+  });
+});
+
+describe('getRecentWorkouts', () => {
+  it('returns completed workouts sorted by startedAt desc with totalVolume', async () => {
+    // Create two completed workouts
+    const w1 = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(w1, 'squat');
+    await workoutService.logSet(ex1, 100, 10); // 1000
+    await workoutService.finishWorkout(w1);
+
+    const w2 = await workoutService.startWorkout();
+    const ex2 = await workoutService.addExercise(w2, 'bench press');
+    await workoutService.logSet(ex2, 50, 10); // 500
+    await workoutService.finishWorkout(w2);
+
+    const recent = await workoutService.getRecentWorkouts(10);
+    expect(recent.length).toBe(2);
+    // Most recent first (w2 started after w1)
+    expect(recent[0].id).toBe(w2);
+    expect(recent[1].id).toBe(w1);
+    expect(recent[0].totalVolume).toBe(500);
+    expect(recent[1].totalVolume).toBe(1000);
+  });
+
+  it('returns empty array when no completed workouts exist', async () => {
+    await workoutService.startWorkout(); // active, not completed
+    const recent = await workoutService.getRecentWorkouts(10);
+    expect(recent).toEqual([]);
+  });
+
+  it('respects limit parameter', async () => {
+    for (let i = 0; i < 5; i++) {
+      const w = await workoutService.startWorkout();
+      await workoutService.finishWorkout(w);
+    }
+    const recent = await workoutService.getRecentWorkouts(3);
+    expect(recent.length).toBe(3);
+  });
+});
+
+describe('startWorkoutFromTemplate', () => {
+  it('creates a workout with template exercises pre-loaded', async () => {
+    // Manually create a template
+    await db.workoutTemplates.add({
+      name: 'Push Day',
+      lastUsed: new Date(),
+      exercises: ['Bench Press', 'Overhead Press', 'Tricep Dips'],
+    });
+
+    const wId = await workoutService.startWorkoutFromTemplate('Push Day');
+    const workout = await db.workouts.get(wId);
+    expect(workout!.name).toBe('Push Day');
+
+    const exercises = await db.workoutExercises
+      .where('workoutId').equals(wId)
+      .sortBy('order');
+    expect(exercises.length).toBe(3);
+    expect(exercises[0].exerciseName).toBe('Bench Press');
+    expect(exercises[1].exerciseName).toBe('Overhead Press');
+    expect(exercises[2].exerciseName).toBe('Tricep Dips');
+  });
+
+  it('creates an empty workout when template does not exist', async () => {
+    const wId = await workoutService.startWorkoutFromTemplate('Nonexistent');
+    const workout = await db.workouts.get(wId);
+    expect(workout!.name).toBe('Nonexistent');
+
+    const exercises = await db.workoutExercises
+      .where('workoutId').equals(wId).toArray();
+    expect(exercises.length).toBe(0);
+  });
+});
+
+describe('upsertTemplate (via finishWorkout)', () => {
+  it('creates a new template when finishing a workout', async () => {
+    const wId = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(wId, 'Leg Day');
+    await workoutService.addExercise(wId, 'squat');
+    await workoutService.addExercise(wId, 'leg press');
+    await workoutService.finishWorkout(wId);
+
+    const template = await db.workoutTemplates
+      .where('name').equals('Leg Day').first();
+    expect(template).toBeDefined();
+    expect(template!.exercises).toEqual(['Squat', 'Leg Press']);
+    expect(template!.lastUsed).toBeInstanceOf(Date);
+  });
+
+  it('updates existing template exercises and lastUsed', async () => {
+    // First workout creates template
+    const w1 = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(w1, 'Push Day');
+    await workoutService.addExercise(w1, 'bench press');
+    await workoutService.finishWorkout(w1);
+
+    // Second workout updates template
+    const w2 = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(w2, 'Push Day');
+    await workoutService.addExercise(w2, 'bench press');
+    await workoutService.addExercise(w2, 'overhead press');
+    await workoutService.finishWorkout(w2);
+
+    const templates = await db.workoutTemplates
+      .where('name').equals('Push Day').toArray();
+    expect(templates.length).toBe(1);
+    expect(templates[0].exercises).toEqual(['Bench Press', 'Overhead Press']);
+  });
+
+  it('integration: finish creates template, startFromTemplate uses it', async () => {
+    // Create and finish a workout
+    const w1 = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(w1, 'Full Body');
+    await workoutService.addExercise(w1, 'squat');
+    await workoutService.addExercise(w1, 'bench press');
+    await workoutService.addExercise(w1, 'deadlift');
+    await workoutService.finishWorkout(w1);
+
+    // Start from template
+    const w2 = await workoutService.startWorkoutFromTemplate('Full Body');
+    const workout = await db.workouts.get(w2);
+    expect(workout!.name).toBe('Full Body');
+
+    const exercises = await db.workoutExercises
+      .where('workoutId').equals(w2)
+      .sortBy('order');
+    expect(exercises.length).toBe(3);
+    expect(exercises[0].exerciseName).toBe('Squat');
+    expect(exercises[1].exerciseName).toBe('Bench Press');
+    expect(exercises[2].exerciseName).toBe('Deadlift');
   });
 });
