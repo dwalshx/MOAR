@@ -17,6 +17,10 @@ Every set logged gives immediate feedback, and every workout shows visible progr
 - ✓ Fast workout logging (weight + reps per set, jump between exercises freely) — Phase 2
 - ✓ Card-based active workout screen for non-linear exercise flow — Phase 2
 - ✓ Silent timestamping of every set for future rest/order analysis — Phase 2
+- ✓ Named workout templates that auto-populate from last session's numbers — Phase 3
+- ✓ "Repeat last workout" as the primary starting flow — Phase 3
+- ✓ Freeform exercise entry with autocomplete from history — Phase 3
+- ✓ Living templates that update as workouts are modified — Phase 3
 
 ### Active
 
@@ -92,4 +96,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after Phase 2 completion*
+*Last updated: 2026-04-09 after Phase 3 completion*
