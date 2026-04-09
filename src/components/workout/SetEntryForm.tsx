@@ -5,12 +5,14 @@ import Stepper from './Stepper';
 interface SetEntryFormProps {
   exerciseName: string;
   workoutExerciseId: number;
+  nudgeText?: string | null;
   onLogSet: (weight: number, reps: number) => void;
 }
 
 export default function SetEntryForm({
   exerciseName,
   workoutExerciseId: _workoutExerciseId,
+  nudgeText,
   onLogSet,
 }: SetEntryFormProps) {
   const [weight, setWeight] = useState(45);
@@ -79,6 +81,10 @@ export default function SetEntryForm({
       >
         Log Set
       </button>
+
+      {nudgeText && (
+        <p className="text-text-secondary text-xs text-center mt-2">{nudgeText}</p>
+      )}
     </div>
   );
 }

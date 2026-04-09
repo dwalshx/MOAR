@@ -209,6 +209,52 @@ export async function getSetBadgesForExercise(
 }
 
 /**
+ * Get last session's sets for an exercise by name, excluding a specific workout.
+ * Used by ExerciseCard for nudge computation and volume comparison.
+ */
+export async function getLastSessionSetsForExercise(
+  exerciseName: string,
+  excludeWorkoutId: number,
+): Promise<{ sets: { setNumber: number; weight: number; reps: number }[]; previousVolume: number }> {
+  const allExerciseRecords = await db.workoutExercises
+    .where('exerciseName')
+    .equals(exerciseName)
+    .toArray();
+
+  const workoutIds = [...new Set(allExerciseRecords.map(e => e.workoutId))];
+  const workouts = await Promise.all(workoutIds.map(id => db.workouts.get(id)));
+  const completedWorkouts = workouts
+    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== excludeWorkoutId)
+    .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
+
+  if (completedWorkouts.length === 0) {
+    return { sets: [], previousVolume: 0 };
+  }
+
+  const lastWorkout = completedWorkouts[0];
+  const lastExerciseRecords = allExerciseRecords.filter(e => e.workoutId === lastWorkout.id);
+  if (lastExerciseRecords.length === 0) {
+    return { sets: [], previousVolume: 0 };
+  }
+
+  const lastExIds = lastExerciseRecords.map(e => e.id!);
+  const lastSets = await db.workoutSets
+    .where('workoutExerciseId')
+    .anyOf(lastExIds)
+    .toArray();
+
+  const sets = lastSets.map(s => ({
+    setNumber: s.setNumber,
+    weight: s.weight,
+    reps: s.reps,
+  }));
+
+  const previousVolume = lastSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+
+  return { sets, previousVolume };
+}
+
+/**
  * Generate a post-workout summary comparing current workout to last same-name workout.
  * Called BEFORE finishWorkout (current workout has no completedAt).
  */

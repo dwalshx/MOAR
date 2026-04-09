@@ -1,23 +1,33 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import type { WorkoutExercise } from '../../db/models';
+import type { BadgeType } from '../../services/comparisonService';
+import { getSetBadgesForExercise, getLastSessionSetsForExercise, suggestTarget } from '../../services/comparisonService';
 import { workoutService } from '../../services/workoutService';
 import SetRow from './SetRow';
 import SetEntryForm from './SetEntryForm';
+import Badge from './Badge';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
+  workoutId: number;
   isExpanded: boolean;
   onToggle: () => void;
 }
 
 export default function ExerciseCard({
   exercise,
+  workoutId,
   isExpanded,
   onToggle,
 }: ExerciseCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
+  const [badges, setBadges] = useState<Map<number, BadgeType>>(new Map());
+  const [isComeback, setIsComeback] = useState(false);
+  const [nudgeText, setNudgeText] = useState<string | null>(null);
+  const [currentVolume, setCurrentVolume] = useState(0);
+  const [previousVolume, setPreviousVolume] = useState<number | null>(null);
 
   const sets = useLiveQuery(
     () =>
@@ -28,6 +38,26 @@ export default function ExerciseCard({
     [exercise.id]
   );
 
+  // Compute badges when sets change
+  useEffect(() => {
+    if (sets === undefined) return;
+    getSetBadgesForExercise(exercise.id!, workoutId).then(result => {
+      setBadges(result.badges);
+      setIsComeback(result.isComeback);
+    });
+    // Compute current volume
+    const vol = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    setCurrentVolume(vol);
+  }, [sets, exercise.id, workoutId]);
+
+  // Compute nudge text and previous volume on mount
+  useEffect(() => {
+    getLastSessionSetsForExercise(exercise.exerciseName, workoutId).then(result => {
+      setNudgeText(suggestTarget(result.sets));
+      setPreviousVolume(result.previousVolume > 0 ? result.previousVolume : null);
+    });
+  }, [exercise.exerciseName, workoutId]);
+
   // Scroll into view when expanded
   useEffect(() => {
     if (isExpanded && cardRef.current) {
@@ -36,6 +66,8 @@ export default function ExerciseCard({
       }, 50);
     }
   }, [isExpanded]);
+
+  const showVolumeUp = previousVolume != null && previousVolume > 0 && currentVolume > previousVolume;
 
   const handleLogSet = async (weight: number, reps: number) => {
     await workoutService.logSet(exercise.id!, weight, reps);
@@ -74,13 +106,15 @@ export default function ExerciseCard({
           <span className="font-semibold text-text-primary truncate max-w-[60%]">
             {exercise.exerciseName}
           </span>
-          <div className="flex items-center gap-3 text-text-secondary text-sm">
+          <div className="flex items-center gap-2 text-text-secondary text-sm">
             <span>{sets.length} {sets.length === 1 ? 'set' : 'sets'}</span>
             {lastSet && (
               <span>
                 {lastSet.weight} x {lastSet.reps}
               </span>
             )}
+            {isComeback && <Badge type="Comeback" />}
+            {showVolumeUp && <Badge type="Volume Up" />}
           </div>
         </div>
       </div>
@@ -116,6 +150,7 @@ export default function ExerciseCard({
             <SetRow
               key={s.id}
               set={s}
+              badge={badges.get(s.id!) || null}
               onUpdate={handleUpdateSet}
               onDelete={handleDeleteSet}
             />
@@ -128,6 +163,7 @@ export default function ExerciseCard({
         <SetEntryForm
           exerciseName={exercise.exerciseName}
           workoutExerciseId={exercise.id!}
+          nudgeText={nudgeText}
           onLogSet={handleLogSet}
         />
       </div>

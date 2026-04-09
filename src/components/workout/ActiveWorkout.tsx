@@ -85,6 +85,7 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
             <ExerciseCard
               key={exercise.id}
               exercise={exercise}
+              workoutId={workoutId}
               isExpanded={expandedExerciseId === exercise.id}
               onToggle={() => handleToggle(exercise.id!)}
             />
