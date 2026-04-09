@@ -1,6 +1,12 @@
 import { NavLink } from 'react-router';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../db/database';
 
 export default function BottomNav() {
+  const activeWorkout = useLiveQuery(
+    () => db.workouts.filter(w => !w.completedAt).first()
+  );
+
   const linkClass = ({ isActive }: { isActive: boolean }) =>
     `flex flex-col items-center justify-center min-h-[44px] min-w-[44px] px-4 py-2 text-xs font-medium transition-colors ${
       isActive ? 'text-accent' : 'text-text-secondary'
@@ -12,6 +18,12 @@ export default function BottomNav() {
         <span className="text-lg mb-0.5">{'\u{1F3E0}'}</span>
         Home
       </NavLink>
+      {activeWorkout && (
+        <NavLink to={`/workout/${activeWorkout.id}`} className={linkClass}>
+          <span className="text-lg mb-0.5">{'\u{1F3CB}'}</span>
+          Workout
+        </NavLink>
+      )}
       <NavLink to="/history" className={linkClass}>
         <span className="text-lg mb-0.5">{'\u{1F4CB}'}</span>
         History
