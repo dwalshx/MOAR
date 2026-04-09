@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { workoutService } from '../services/workoutService';
+import RecentWorkouts from '../components/home/RecentWorkouts';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -49,6 +50,8 @@ export default function HomePage() {
       >
         {activeWorkout ? 'Start New Workout' : 'Start Workout'}
       </button>
+
+      <RecentWorkouts />
     </div>
   );
 }
