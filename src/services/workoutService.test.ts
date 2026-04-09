@@ -338,3 +338,192 @@ describe('upsertTemplate (via finishWorkout)', () => {
     expect(exercises[2].exerciseName).toBe('Deadlift');
   });
 });
+
+describe('getCompletedWorkouts', () => {
+  it('returns completed workouts sorted by completedAt descending', async () => {
+    const w1 = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(w1, 'squat');
+    await workoutService.logSet(ex1, 100, 10);
+    await workoutService.finishWorkout(w1);
+
+    const w2 = await workoutService.startWorkout();
+    const ex2 = await workoutService.addExercise(w2, 'bench press');
+    await workoutService.logSet(ex2, 50, 10);
+    await workoutService.finishWorkout(w2);
+
+    const results = await workoutService.getCompletedWorkouts(0, 20);
+    expect(results.length).toBe(2);
+    // Most recent completedAt first
+    expect(results[0].id).toBe(w2);
+    expect(results[1].id).toBe(w1);
+    expect(results[0].totalVolume).toBe(500);
+    expect(results[1].totalVolume).toBe(1000);
+  });
+
+  it('excludes active workouts', async () => {
+    const w1 = await workoutService.startWorkout();
+    await workoutService.finishWorkout(w1);
+    await workoutService.startWorkout(); // active, not completed
+
+    const results = await workoutService.getCompletedWorkouts(0, 20);
+    expect(results.length).toBe(1);
+  });
+
+  it('paginates with offset and limit', async () => {
+    // Create 5 completed workouts
+    for (let i = 0; i < 5; i++) {
+      const w = await workoutService.startWorkout();
+      await workoutService.finishWorkout(w);
+    }
+
+    const page1 = await workoutService.getCompletedWorkouts(0, 2);
+    expect(page1.length).toBe(2);
+
+    const page2 = await workoutService.getCompletedWorkouts(2, 2);
+    expect(page2.length).toBe(2);
+
+    const page3 = await workoutService.getCompletedWorkouts(4, 2);
+    expect(page3.length).toBe(1);
+  });
+
+  it('returns empty array when no completed workouts exist', async () => {
+    await workoutService.startWorkout(); // active
+    const results = await workoutService.getCompletedWorkouts(0, 20);
+    expect(results).toEqual([]);
+  });
+});
+
+describe('getWorkoutDetail', () => {
+  it('returns workout with exercises, sets, volumes, and duration', async () => {
+    const wId = await workoutService.startWorkout();
+    await workoutService.updateWorkoutName(wId, 'Test Workout');
+    const ex1 = await workoutService.addExercise(wId, 'squat');
+    const ex2 = await workoutService.addExercise(wId, 'bench press');
+    await workoutService.logSet(ex1, 100, 10); // 1000
+    await workoutService.logSet(ex1, 100, 8);  // 800
+    await workoutService.logSet(ex2, 50, 10);  // 500
+    await workoutService.finishWorkout(wId);
+
+    const detail = await workoutService.getWorkoutDetail(wId);
+    expect(detail).not.toBeNull();
+    expect(detail!.name).toBe('Test Workout');
+    expect(detail!.totalVolume).toBe(2300);
+    expect(detail!.exercises.length).toBe(2);
+    expect(detail!.exercises[0].exerciseName).toBe('Squat');
+    expect(detail!.exercises[0].volume).toBe(1800);
+    expect(detail!.exercises[0].sets.length).toBe(2);
+    expect(detail!.exercises[1].exerciseName).toBe('Bench Press');
+    expect(detail!.exercises[1].volume).toBe(500);
+  });
+
+  it('returns null for non-existent workout', async () => {
+    const detail = await workoutService.getWorkoutDetail(9999);
+    expect(detail).toBeNull();
+  });
+
+  it('returns null for active (not completed) workout', async () => {
+    const wId = await workoutService.startWorkout();
+    const detail = await workoutService.getWorkoutDetail(wId);
+    expect(detail).toBeNull();
+  });
+
+  it('returns null duration when workout has 0 sets', async () => {
+    const wId = await workoutService.startWorkout();
+    await workoutService.addExercise(wId, 'squat');
+    await workoutService.finishWorkout(wId);
+
+    const detail = await workoutService.getWorkoutDetail(wId);
+    expect(detail).not.toBeNull();
+    expect(detail!.duration).toBeNull();
+  });
+
+  it('returns 0 duration when workout has 1 set', async () => {
+    const wId = await workoutService.startWorkout();
+    const ex = await workoutService.addExercise(wId, 'squat');
+    await workoutService.logSet(ex, 100, 10);
+    await workoutService.finishWorkout(wId);
+
+    const detail = await workoutService.getWorkoutDetail(wId);
+    expect(detail).not.toBeNull();
+    expect(detail!.duration).toBe(0);
+  });
+});
+
+describe('getExerciseHistory', () => {
+  it('returns sessions sorted by date descending with setCount, totalVolume, sets', async () => {
+    // Workout 1 with bench press
+    const w1 = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(w1, 'bench press');
+    await workoutService.logSet(ex1, 100, 10);
+    await workoutService.logSet(ex1, 100, 8);
+    await workoutService.finishWorkout(w1);
+
+    // Workout 2 with bench press
+    const w2 = await workoutService.startWorkout();
+    const ex2 = await workoutService.addExercise(w2, 'bench press');
+    await workoutService.logSet(ex2, 110, 10);
+    await workoutService.finishWorkout(w2);
+
+    const history = await workoutService.getExerciseHistory('Bench Press');
+    expect(history.length).toBe(2);
+    // Most recent first
+    expect(history[0].workoutId).toBe(w2);
+    expect(history[0].setCount).toBe(1);
+    expect(history[0].totalVolume).toBe(1100);
+    expect(history[0].sets.length).toBe(1);
+    expect(history[1].workoutId).toBe(w1);
+    expect(history[1].setCount).toBe(2);
+    expect(history[1].totalVolume).toBe(1800);
+  });
+
+  it('excludes sessions from active workouts', async () => {
+    const w1 = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(w1, 'squat');
+    await workoutService.logSet(ex1, 100, 10);
+    await workoutService.finishWorkout(w1);
+
+    // Active workout with squat
+    const w2 = await workoutService.startWorkout();
+    const ex2 = await workoutService.addExercise(w2, 'squat');
+    await workoutService.logSet(ex2, 110, 10);
+
+    const history = await workoutService.getExerciseHistory('Squat');
+    expect(history.length).toBe(1);
+    expect(history[0].workoutId).toBe(w1);
+  });
+
+  it('respects limit parameter', async () => {
+    for (let i = 0; i < 5; i++) {
+      const w = await workoutService.startWorkout();
+      const ex = await workoutService.addExercise(w, 'squat');
+      await workoutService.logSet(ex, 100 + i * 10, 10);
+      await workoutService.finishWorkout(w);
+    }
+
+    const history = await workoutService.getExerciseHistory('Squat', 3);
+    expect(history.length).toBe(3);
+  });
+});
+
+describe('getWorkoutVolumeChartData', () => {
+  it('returns date/volume pairs sorted chronologically (oldest first)', async () => {
+    const w1 = await workoutService.startWorkout();
+    const ex1 = await workoutService.addExercise(w1, 'squat');
+    await workoutService.logSet(ex1, 100, 10); // 1000
+    await workoutService.finishWorkout(w1);
+
+    const w2 = await workoutService.startWorkout();
+    const ex2 = await workoutService.addExercise(w2, 'bench press');
+    await workoutService.logSet(ex2, 50, 10); // 500
+    await workoutService.finishWorkout(w2);
+
+    const data = await workoutService.getWorkoutVolumeChartData(20);
+    expect(data.length).toBe(2);
+    // Chronological order (oldest first for chart)
+    expect(data[0].volume).toBe(1000);
+    expect(data[1].volume).toBe(500);
+    // Check date format
+    expect(data[0].date).toBeTruthy();
+    expect(data[0].fullDate).toBeTruthy();
+  });
+});
