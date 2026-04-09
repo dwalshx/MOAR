@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import type { WorkoutSet } from '../../db/models';
+import type { BadgeType } from '../../services/comparisonService';
 import { useSwipeToDelete } from '../../hooks/useSwipeToDelete';
 import Stepper from './Stepper';
+import Badge from './Badge';
 
 interface SetRowProps {
   set: WorkoutSet;
+  badge?: BadgeType | null;
   onUpdate: (setId: number, weight: number, reps: number) => void;
   onDelete: (setId: number) => void;
 }
 
-export default function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
+export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editWeight, setEditWeight] = useState(set.weight);
   const [editReps, setEditReps] = useState(set.reps);
@@ -104,6 +107,7 @@ export default function SetRow({ set, onUpdate, onDelete }: SetRowProps) {
           <span className="text-text-primary font-medium text-sm">
             {set.reps} reps
           </span>
+          {badge && <Badge type={badge} />}
         </div>
       </div>
     </div>
