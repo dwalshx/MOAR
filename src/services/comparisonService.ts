@@ -1,0 +1,359 @@
+import { db } from '../db/database';
+import type { WorkoutSet } from '../db/models';
+
+// --- Types ---
+
+export type BadgeType = 'PR' | '+1' | 'Matched' | 'Volume Up' | 'Comeback';
+
+export interface SetBadge {
+  type: BadgeType;
+}
+
+export interface ExerciseComparison {
+  exerciseName: string;
+  currentVolume: number;
+  previousVolume: number | null;
+  direction: 'up' | 'down' | 'same' | 'new';
+  setBadges: Map<number, BadgeType>; // setId -> badge type
+  isComeback: boolean;
+}
+
+export interface WorkoutSummary {
+  totalVolume: number;
+  previousTotalVolume: number | null;
+  volumeChangePercent: number | null;
+  exercises: ExerciseComparison[];
+  winCount: number;
+  totalExercises: number;
+  bestAchievement: string | null;
+}
+
+export interface NudgeResult {
+  text: string;
+}
+
+// --- Pure Functions ---
+
+/**
+ * Classify a single set against history.
+ * Priority: PR > +1 > Matched > null
+ * Volume Up and Comeback are exercise-level, not per-set.
+ */
+export function classifySet(
+  weight: number,
+  reps: number,
+  setNumber: number,
+  lastSessionSets: { setNumber: number; weight: number; reps: number }[],
+  allHistoricalSets: { weight: number; reps: number }[],
+  hasCompletedHistory: boolean,
+): BadgeType | null {
+  // No badge for zero weight or zero reps
+  if (weight <= 0 || reps <= 0) return null;
+
+  // No PR possible if no completed history exists (Pitfall 1: first-ever workout)
+  if (!hasCompletedHistory) return null;
+
+  // Check PR: exact weight x reps combo never done before
+  const isNewCombo = !allHistoricalSets.some(
+    s => s.weight === weight && s.reps === reps,
+  );
+  if (isNewCombo) return 'PR';
+
+  // Check +1 and Matched against same set number from last session
+  const lastSameSet = lastSessionSets.find(s => s.setNumber === setNumber);
+  if (lastSameSet) {
+    const beatReps = weight === lastSameSet.weight && reps > lastSameSet.reps;
+    const beatWeight = reps === lastSameSet.reps && weight > lastSameSet.weight;
+    if (beatReps || beatWeight) return '+1';
+
+    if (weight === lastSameSet.weight && reps === lastSameSet.reps) return 'Matched';
+  }
+
+  return null;
+}
+
+/**
+ * Suggest a target based on last session's first set.
+ * Format: "Last time: {weight} x {reps}. Try {weight} x {reps+1} or {weight+5} x {reps}"
+ */
+export function suggestTarget(
+  lastSessionSets: { setNumber: number; weight: number; reps: number }[],
+): string | null {
+  if (lastSessionSets.length === 0) return null;
+
+  // Use the first set (sorted by setNumber)
+  const sorted = [...lastSessionSets].sort((a, b) => a.setNumber - b.setNumber);
+  const first = sorted[0];
+
+  return `Last time: ${first.weight} x ${first.reps}. Try ${first.weight} x ${first.reps + 1} or ${first.weight + 5} x ${first.reps}`;
+}
+
+// --- Async Functions (DB queries) ---
+
+/**
+ * Get set badges for all sets of a workout exercise, comparing against history.
+ * Also returns isComeback flag.
+ */
+export async function getSetBadgesForExercise(
+  workoutExerciseId: number,
+  currentWorkoutId: number,
+): Promise<{ badges: Map<number, BadgeType>; isComeback: boolean }> {
+  // 1. Get exercise record to find exerciseName
+  const exerciseRecord = await db.workoutExercises.get(workoutExerciseId);
+  if (!exerciseRecord) return { badges: new Map(), isComeback: false };
+
+  const exerciseName = exerciseRecord.exerciseName;
+
+  // 2. Find all workoutExercise records for this exerciseName
+  const allExerciseRecords = await db.workoutExercises
+    .where('exerciseName')
+    .equals(exerciseName)
+    .toArray();
+
+  // 3. Get parent workouts, filter to completed, exclude current
+  const workoutIds = [...new Set(allExerciseRecords.map(e => e.workoutId))];
+  const workouts = await Promise.all(workoutIds.map(id => db.workouts.get(id)));
+  const completedWorkouts = workouts
+    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== currentWorkoutId)
+    .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
+
+  const hasCompletedHistory = completedWorkouts.length > 0;
+
+  // 4. Find the most recent completed workout's exercise records
+  let lastSessionSets: { setNumber: number; weight: number; reps: number }[] = [];
+
+  if (completedWorkouts.length > 0) {
+    const lastWorkout = completedWorkouts[0];
+    const lastExerciseRecords = allExerciseRecords.filter(
+      e => e.workoutId === lastWorkout.id,
+    );
+    if (lastExerciseRecords.length > 0) {
+      const lastExIds = lastExerciseRecords.map(e => e.id!);
+      const lastSets = await db.workoutSets
+        .where('workoutExerciseId')
+        .anyOf(lastExIds)
+        .toArray();
+      lastSessionSets = lastSets.map(s => ({
+        setNumber: s.setNumber,
+        weight: s.weight,
+        reps: s.reps,
+      }));
+    }
+  }
+
+  // 5. Get ALL historical sets for PR detection (from completed workouts only)
+  const completedExerciseIds = allExerciseRecords
+    .filter(e => {
+      const w = completedWorkouts.find(cw => cw.id === e.workoutId);
+      return w != null;
+    })
+    .map(e => e.id!);
+
+  let allHistoricalSets: { weight: number; reps: number }[] = [];
+  if (completedExerciseIds.length > 0) {
+    const historicalSetsRaw = await db.workoutSets
+      .where('workoutExerciseId')
+      .anyOf(completedExerciseIds)
+      .toArray();
+    allHistoricalSets = historicalSetsRaw.map(s => ({
+      weight: s.weight,
+      reps: s.reps,
+    }));
+  }
+
+  // 6. Get current sets and classify each
+  const currentSets = await db.workoutSets
+    .where('workoutExerciseId')
+    .equals(workoutExerciseId)
+    .sortBy('setNumber');
+
+  const badges = new Map<number, BadgeType>();
+  for (const set of currentSets) {
+    const badge = classifySet(
+      set.weight,
+      set.reps,
+      set.setNumber,
+      lastSessionSets,
+      allHistoricalSets,
+      hasCompletedHistory,
+    );
+    if (badge && set.id != null) {
+      badges.set(set.id, badge);
+    }
+  }
+
+  // 7. Check isComeback: exercise not in last completed workout (overall) but in an older one
+  let isComeback = false;
+  // Get ALL completed workouts (not just those with this exercise) to find the true "last workout"
+  const allWorkoutsForComeback = await db.workouts.toArray();
+  const allCompletedSorted = allWorkoutsForComeback
+    .filter(w => w.completedAt != null && w.id !== currentWorkoutId)
+    .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
+
+  if (allCompletedSorted.length > 0 && hasCompletedHistory) {
+    const lastOverallWorkout = allCompletedSorted[0];
+    // Check if this exercise was in the last completed workout
+    const lastWorkoutExercises = await db.workoutExercises
+      .where('workoutId')
+      .equals(lastOverallWorkout.id!)
+      .toArray();
+    const lastWorkoutExerciseNames = lastWorkoutExercises.map(e => e.exerciseName);
+
+    if (!lastWorkoutExerciseNames.includes(exerciseName)) {
+      // Exercise wasn't in the last workout but we know it has completed history
+      isComeback = true;
+    }
+  }
+
+  return { badges, isComeback };
+}
+
+/**
+ * Generate a post-workout summary comparing current workout to last same-name workout.
+ * Called BEFORE finishWorkout (current workout has no completedAt).
+ */
+export async function generateWorkoutSummary(
+  workoutId: number,
+): Promise<WorkoutSummary> {
+  const workout = await db.workouts.get(workoutId);
+  if (!workout) {
+    return {
+      totalVolume: 0,
+      previousTotalVolume: null,
+      volumeChangePercent: null,
+      exercises: [],
+      winCount: 0,
+      totalExercises: 0,
+      bestAchievement: null,
+    };
+  }
+
+  // Get all exercises for current workout
+  const currentExercises = await db.workoutExercises
+    .where('workoutId')
+    .equals(workoutId)
+    .sortBy('order');
+
+  // Find previous completed workout with same name (D-21)
+  const allWorkouts = await db.workouts.toArray();
+  const previousSameNameWorkouts = allWorkouts
+    .filter(w => w.completedAt != null && w.name === workout.name && w.id !== workoutId)
+    .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
+
+  const previousWorkout = previousSameNameWorkouts.length > 0 ? previousSameNameWorkouts[0] : null;
+
+  // Compute current total volume
+  let totalVolume = 0;
+  const exerciseComparisons: ExerciseComparison[] = [];
+  let prDescriptions: string[] = [];
+
+  for (const ex of currentExercises) {
+    const currentSets = await db.workoutSets
+      .where('workoutExerciseId')
+      .equals(ex.id!)
+      .toArray();
+    const currentVolume = currentSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    totalVolume += currentVolume;
+
+    // Find previous session for this specific exercise
+    const allExRecords = await db.workoutExercises
+      .where('exerciseName')
+      .equals(ex.exerciseName)
+      .toArray();
+
+    // Filter to completed workouts, exclude current
+    const exWorkoutIds = [...new Set(allExRecords.map(e => e.workoutId))];
+    const exWorkouts = await Promise.all(exWorkoutIds.map(id => db.workouts.get(id)));
+    const completedExWorkouts = exWorkouts
+      .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== workoutId)
+      .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
+
+    let previousVolume: number | null = null;
+    let direction: 'up' | 'down' | 'same' | 'new' = 'new';
+
+    if (completedExWorkouts.length > 0) {
+      const lastExWorkout = completedExWorkouts[0];
+      const lastExRecords = allExRecords.filter(e => e.workoutId === lastExWorkout.id);
+      if (lastExRecords.length > 0) {
+        const lastExIds = lastExRecords.map(e => e.id!);
+        const prevSets = await db.workoutSets
+          .where('workoutExerciseId')
+          .anyOf(lastExIds)
+          .toArray();
+        previousVolume = prevSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+
+        if (currentVolume > previousVolume) direction = 'up';
+        else if (currentVolume < previousVolume) direction = 'down';
+        else direction = 'same';
+      }
+    }
+
+    // Get badges for this exercise
+    const badgeResult = await getSetBadgesForExercise(ex.id!, workoutId);
+
+    // Track PRs for bestAchievement
+    for (const [setId, badge] of badgeResult.badges) {
+      if (badge === 'PR') {
+        const set = currentSets.find(s => s.id === setId);
+        if (set) {
+          prDescriptions.push(`PR: ${ex.exerciseName} ${set.weight} x ${set.reps}`);
+        }
+      }
+    }
+
+    exerciseComparisons.push({
+      exerciseName: ex.exerciseName,
+      currentVolume,
+      previousVolume,
+      direction,
+      setBadges: badgeResult.badges,
+      isComeback: badgeResult.isComeback,
+    });
+  }
+
+  // Compute previous total volume (from previous same-name workout)
+  let previousTotalVolume: number | null = null;
+  let volumeChangePercent: number | null = null;
+
+  if (previousWorkout) {
+    const prevExercises = await db.workoutExercises
+      .where('workoutId')
+      .equals(previousWorkout.id!)
+      .toArray();
+    const prevExIds = prevExercises.map(e => e.id!);
+    let prevTotal = 0;
+    if (prevExIds.length > 0) {
+      const prevSets = await db.workoutSets
+        .where('workoutExerciseId')
+        .anyOf(prevExIds)
+        .toArray();
+      prevTotal = prevSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    }
+    previousTotalVolume = prevTotal;
+    if (prevTotal > 0) {
+      volumeChangePercent = ((totalVolume - prevTotal) / prevTotal) * 100;
+    }
+  }
+
+  const winCount = exerciseComparisons.filter(e => e.direction === 'up').length;
+
+  // Best achievement: prefer PRs, fallback to biggest volume % gain
+  let bestAchievement: string | null = null;
+  if (prDescriptions.length > 0) {
+    bestAchievement = prDescriptions[0];
+  } else if (previousWorkout && volumeChangePercent != null && volumeChangePercent > 0) {
+    bestAchievement = `Total volume up ${volumeChangePercent.toFixed(1)}%`;
+  } else if (!previousWorkout) {
+    bestAchievement = 'First workout completed!';
+  }
+
+  return {
+    totalVolume,
+    previousTotalVolume,
+    volumeChangePercent,
+    exercises: exerciseComparisons,
+    winCount,
+    totalExercises: currentExercises.length,
+    bestAchievement,
+  };
+}
