@@ -1,17 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import { workoutService } from '../../services/workoutService';
+import { generateWorkoutSummary } from '../../services/comparisonService';
+import type { WorkoutSummary as WorkoutSummaryData } from '../../services/comparisonService';
 import WorkoutHeader from './WorkoutHeader';
 import ExerciseInput from './ExerciseInput';
 import ExerciseCard from './ExerciseCard';
+import WorkoutSummary from './WorkoutSummary';
 
 interface ActiveWorkoutProps {
   workoutId: number;
+  onSummaryShow?: () => void;
 }
 
-export default function ActiveWorkout({ workoutId }: ActiveWorkoutProps) {
+export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkoutProps) {
   const [expandedExerciseId, setExpandedExerciseId] = useState<number | null>(null);
+  const [summary, setSummary] = useState<WorkoutSummaryData | null>(null);
+  const navigate = useNavigate();
 
   const workout = useLiveQuery(
     () => db.workouts.get(workoutId),
@@ -33,12 +40,21 @@ export default function ActiveWorkout({ workoutId }: ActiveWorkoutProps) {
   };
 
   const handleFinish = async () => {
+    // Generate summary BEFORE finishing (Pitfall 6: current workout must still be active)
+    const summaryData = await generateWorkoutSummary(workoutId);
     await workoutService.finishWorkout(workoutId);
+    onSummaryShow?.();
+    setSummary(summaryData);
   };
 
   const handleToggle = (exerciseId: number) => {
     setExpandedExerciseId((prev) => (prev === exerciseId ? null : exerciseId));
   };
+
+  // Show summary screen after finishing
+  if (summary) {
+    return <WorkoutSummary summary={summary} onDone={() => navigate('/')} />;
+  }
 
   // Loading state while useLiveQuery resolves
   if (workout === undefined || exercises === undefined) {

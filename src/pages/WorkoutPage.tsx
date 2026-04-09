@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
@@ -7,6 +7,7 @@ import ActiveWorkout from '../components/workout/ActiveWorkout';
 export default function WorkoutPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [showingSummary, setShowingSummary] = useState(false);
 
   const parsedId = Number(id);
 
@@ -22,10 +23,10 @@ export default function WorkoutPage() {
   );
 
   useEffect(() => {
-    if (workout && workout.completedAt) {
+    if (workout && workout.completedAt && !showingSummary) {
       navigate('/', { replace: true });
     }
-  }, [workout, navigate]);
+  }, [workout, navigate, showingSummary]);
 
   if (isNaN(parsedId)) {
     return null;
@@ -43,5 +44,10 @@ export default function WorkoutPage() {
     );
   }
 
-  return <ActiveWorkout workoutId={parsedId} />;
+  return (
+    <ActiveWorkout
+      workoutId={parsedId}
+      onSummaryShow={() => setShowingSummary(true)}
+    />
+  );
 }
