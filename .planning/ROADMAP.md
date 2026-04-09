@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Scaffold Vite project, install deps, Tailwind CSS 4 dark theme, Dexie data layer with tests
+- [x] 01-01-PLAN.md — Scaffold Vite project, install deps, Tailwind CSS 4 dark theme, Dexie data layer with tests
 - [ ] 01-02-PLAN.md — Navigation shell with React Router, bottom tab bar, mobile-first layout, page placeholders
 
 **UI hint**: yes
