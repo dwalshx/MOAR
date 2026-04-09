@@ -78,7 +78,13 @@ Plans:
   1. Logging a set shows a badge when it is a PR, +1 rep, matched previous, volume up, or comeback
   2. Finishing a workout displays a summary with total volume comparison, win count, and highlights
   3. During a workout, user sees progressive overload nudges suggesting +1 rep or +5 lbs based on last session
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Comparison engine service with TDD: classifySet, suggestTarget, getSetBadgesForExercise, generateWorkoutSummary
+- [ ] 04-02-PLAN.md — Badge pill component, SetRow badge prop, SetEntryForm nudge text, ExerciseCard wiring
+- [ ] 04-03-PLAN.md — Post-workout summary screen, finish flow intercept, WorkoutPage redirect guard
+
 **UI hint**: yes
 
 ### Phase 5: History & Charts
@@ -114,6 +120,6 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6
 | 1. Foundation | 0/2 | Planning complete | - |
 | 2. Core Logging | 0/TBD | Not started | - |
 | 3. Workouts & Templates | 0/3 | Planning complete | - |
-| 4. Feedback & Comparison | 0/TBD | Not started | - |
+| 4. Feedback & Comparison | 0/3 | Planning complete | - |
 | 5. History & Charts | 0/TBD | Not started | - |
 | 6. PWA Polish | 0/TBD | Not started | - |
