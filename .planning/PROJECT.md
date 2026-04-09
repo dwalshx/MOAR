@@ -14,6 +14,9 @@ Every set logged gives immediate feedback, and every workout shows visible progr
 
 - ✓ Mobile-first responsive design (works on iPhone Safari) — Phase 1
 - ✓ Local storage with IndexedDB (works offline) — Phase 1
+- ✓ Fast workout logging (weight + reps per set, jump between exercises freely) — Phase 2
+- ✓ Card-based active workout screen for non-linear exercise flow — Phase 2
+- ✓ Silent timestamping of every set for future rest/order analysis — Phase 2
 
 ### Active
 
@@ -89,4 +92,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after Phase 1 completion*
+*Last updated: 2026-04-09 after Phase 2 completion*
