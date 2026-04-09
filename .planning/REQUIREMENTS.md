@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Logging
 
-- [ ] **LOG-01**: User can log a set with weight and reps in 1-3 taps
-- [ ] **LOG-02**: Weight and reps pre-filled from last session's values as default
-- [ ] **LOG-03**: Stepper buttons (+/-) for adjusting weight and reps without keyboard
-- [ ] **LOG-04**: Every set silently timestamped for future rest/order analysis
-- [ ] **LOG-05**: User can edit or delete a logged set
+- [x] **LOG-01**: User can log a set with weight and reps in 1-3 taps
+- [x] **LOG-02**: Weight and reps pre-filled from last session's values as default
+- [x] **LOG-03**: Stepper buttons (+/-) for adjusting weight and reps without keyboard
+- [x] **LOG-04**: Every set silently timestamped for future rest/order analysis
+- [x] **LOG-05**: User can edit or delete a logged set
 - [ ] **LOG-06**: Card-based active workout screen for jumping between exercises freely
 
 ### Workouts
@@ -86,11 +86,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLT-01 | Phase 1: Foundation | Complete |
 | PLT-02 | Phase 1: Foundation | Complete |
-| LOG-01 | Phase 2: Core Logging | Pending |
-| LOG-02 | Phase 2: Core Logging | Pending |
-| LOG-03 | Phase 2: Core Logging | Pending |
-| LOG-04 | Phase 2: Core Logging | Pending |
-| LOG-05 | Phase 2: Core Logging | Pending |
+| LOG-01 | Phase 2: Core Logging | Complete |
+| LOG-02 | Phase 2: Core Logging | Complete |
+| LOG-03 | Phase 2: Core Logging | Complete |
+| LOG-04 | Phase 2: Core Logging | Complete |
+| LOG-05 | Phase 2: Core Logging | Complete |
 | LOG-06 | Phase 2: Core Logging | Pending |
 | WRK-01 | Phase 3: Workouts & Templates | Pending |
 | WRK-02 | Phase 3: Workouts & Templates | Pending |

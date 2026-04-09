@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 2 context gathered
-last_updated: "2026-04-09T01:07:53.964Z"
+status: executing
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-04-09T05:43:58.790Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** Every set logged gives immediate feedback, and every workout shows visible progress
-**Current focus:** Phase 01 — foundation
+**Current focus:** Phase 02 — core-logging
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 02 (core-logging) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-09
 
 Progress: [░░░░░░░░░░] 0%
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-foundation P01 | 4min | 2 tasks | 14 files |
 | Phase 01-foundation P02 | 1min | 2 tasks | 7 files |
+| Phase 02-core-logging P01 | 9min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: Dark theme: bg-primary #0f0f0f, accent orange #f97316, success green #22c55e
 - [Phase 01-foundation]: Import from react-router (not react-router-dom) per React Router 7 conventions
 - [Phase 01-foundation]: h-dvh instead of h-screen to avoid iOS Safari 100vh bug
+- [Phase 02-core-logging]: Service layer pattern: all Dexie CRUD through workoutService, .filter() for null checks
+- [Phase 02-core-logging]: Vitest: node env + fake-indexeddb for services, jsdom + renderHook for React hooks
 
 ### Pending Todos
 
@@ -81,6 +84,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T01:07:53.957Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-core-logging/02-CONTEXT.md
+Last session: 2026-04-09T05:43:58.777Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
