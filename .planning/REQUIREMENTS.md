@@ -27,9 +27,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Feedback
 
-- [ ] **FBK-01**: Per-set micro-feedback badges (PR, +1, matched, volume up, comeback)
-- [ ] **FBK-02**: Post-workout summary with volume comparison, win count, highlights
-- [ ] **FBK-03**: Progressive overload nudges ("try +1 rep" or "+5 lbs")
+- [x] **FBK-01**: Per-set micro-feedback badges (PR, +1, matched, volume up, comeback)
+- [x] **FBK-02**: Post-workout summary with volume comparison, win count, highlights
+- [x] **FBK-03**: Progressive overload nudges ("try +1 rep" or "+5 lbs")
 - [ ] **FBK-04**: Per-exercise volume-over-time line chart
 - [ ] **FBK-05**: Total workout volume-over-time line chart
 
@@ -98,9 +98,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WRK-04 | Phase 3: Workouts & Templates | Complete |
 | WRK-05 | Phase 3: Workouts & Templates | Complete |
 | WRK-06 | Phase 3: Workouts & Templates | Complete |
-| FBK-01 | Phase 4: Feedback & Comparison | Pending |
-| FBK-02 | Phase 4: Feedback & Comparison | Pending |
-| FBK-03 | Phase 4: Feedback & Comparison | Pending |
+| FBK-01 | Phase 4: Feedback & Comparison | Complete |
+| FBK-02 | Phase 4: Feedback & Comparison | Complete |
+| FBK-03 | Phase 4: Feedback & Comparison | Complete |
 | HST-01 | Phase 5: History & Charts | Pending |
 | HST-02 | Phase 5: History & Charts | Pending |
 | HST-03 | Phase 5: History & Charts | Pending |
