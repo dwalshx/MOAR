@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-04-09T05:43:58.790Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-09T05:49:47.206Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 02 (core-logging) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Ready to execute
 Last activity: 2026-04-09
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-foundation P01 | 4min | 2 tasks | 14 files |
 | Phase 01-foundation P02 | 1min | 2 tasks | 7 files |
 | Phase 02-core-logging P01 | 9min | 3 tasks | 8 files |
+| Phase 02-core-logging P02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 01-foundation]: h-dvh instead of h-screen to avoid iOS Safari 100vh bug
 - [Phase 02-core-logging]: Service layer pattern: all Dexie CRUD through workoutService, .filter() for null checks
 - [Phase 02-core-logging]: Vitest: node env + fake-indexeddb for services, jsdom + renderHook for React hooks
+- [Phase 02-core-logging]: useLiveQuery for all component reads — Dexie reactivity without manual refresh
+- [Phase 02-core-logging]: Accordion tracks expandedExerciseId by DB ID (not array index) to survive reorders
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T05:43:58.777Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-04-09T05:49:47.197Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None

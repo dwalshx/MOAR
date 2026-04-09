@@ -14,7 +14,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **LOG-03**: Stepper buttons (+/-) for adjusting weight and reps without keyboard
 - [x] **LOG-04**: Every set silently timestamped for future rest/order analysis
 - [x] **LOG-05**: User can edit or delete a logged set
-- [ ] **LOG-06**: Card-based active workout screen for jumping between exercises freely
+- [x] **LOG-06**: Card-based active workout screen for jumping between exercises freely
 
 ### Workouts
 
@@ -91,7 +91,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOG-03 | Phase 2: Core Logging | Complete |
 | LOG-04 | Phase 2: Core Logging | Complete |
 | LOG-05 | Phase 2: Core Logging | Complete |
-| LOG-06 | Phase 2: Core Logging | Pending |
+| LOG-06 | Phase 2: Core Logging | Complete |
 | WRK-01 | Phase 3: Workouts & Templates | Pending |
 | WRK-02 | Phase 3: Workouts & Templates | Pending |
 | WRK-03 | Phase 3: Workouts & Templates | Pending |
