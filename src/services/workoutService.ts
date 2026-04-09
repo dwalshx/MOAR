@@ -9,6 +9,36 @@ export interface RecentWorkout {
   totalVolume: number;
 }
 
+export interface WorkoutDetail {
+  id: number;
+  name: string;
+  startedAt: Date;
+  completedAt: Date;
+  totalVolume: number;
+  duration: number | null; // minutes
+  exercises: WorkoutExerciseDetail[];
+}
+
+export interface WorkoutExerciseDetail {
+  exerciseName: string;
+  sets: { setNumber: number; weight: number; reps: number }[];
+  volume: number;
+}
+
+export interface ExerciseSession {
+  workoutId: number;
+  date: Date;
+  setCount: number;
+  totalVolume: number;
+  sets: { setNumber: number; weight: number; reps: number }[];
+}
+
+export interface VolumeDataPoint {
+  date: string;     // "Apr 9" for chart axis
+  volume: number;
+  fullDate: string; // "Apr 9, 2026" for tooltip
+}
+
 export function normalizeExerciseName(name: string): string {
   return name
     .trim()
@@ -160,5 +190,123 @@ export const workoutService = {
   async getExerciseNames(): Promise<string[]> {
     const keys = await db.workoutExercises.orderBy('exerciseName').uniqueKeys();
     return keys as string[];
+  },
+
+  async getCompletedWorkouts(offset: number = 0, limit: number = 20): Promise<RecentWorkout[]> {
+    const allWorkouts = await db.workouts.toArray();
+    const completed = allWorkouts
+      .filter(w => w.completedAt)
+      .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime())
+      .slice(offset, offset + limit);
+
+    const results: RecentWorkout[] = [];
+    for (const w of completed) {
+      const totalVolume = await this.getWorkoutVolume(w.id!);
+      results.push({
+        id: w.id!,
+        name: w.name,
+        startedAt: w.startedAt,
+        completedAt: w.completedAt!,
+        totalVolume,
+      });
+    }
+    return results;
+  },
+
+  async getWorkoutDetail(workoutId: number): Promise<WorkoutDetail | null> {
+    const workout = await db.workouts.get(workoutId);
+    if (!workout || !workout.completedAt) return null;
+
+    const exercises = await db.workoutExercises
+      .where('workoutId').equals(workoutId)
+      .sortBy('order');
+
+    let totalVolume = 0;
+    let earliestTimestamp: Date | null = null;
+    let latestTimestamp: Date | null = null;
+    const exerciseDetails: WorkoutExerciseDetail[] = [];
+
+    for (const ex of exercises) {
+      const sets = await db.workoutSets
+        .where('workoutExerciseId').equals(ex.id!)
+        .sortBy('setNumber');
+
+      const exVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      totalVolume += exVolume;
+
+      for (const s of sets) {
+        if (!earliestTimestamp || s.timestamp < earliestTimestamp) {
+          earliestTimestamp = s.timestamp;
+        }
+        if (!latestTimestamp || s.timestamp > latestTimestamp) {
+          latestTimestamp = s.timestamp;
+        }
+      }
+
+      exerciseDetails.push({
+        exerciseName: ex.exerciseName,
+        sets: sets.map(s => ({ setNumber: s.setNumber, weight: s.weight, reps: s.reps })),
+        volume: exVolume,
+      });
+    }
+
+    let duration: number | null = null;
+    if (earliestTimestamp && latestTimestamp) {
+      if (earliestTimestamp.getTime() === latestTimestamp.getTime()) {
+        duration = 0;
+      } else {
+        duration = Math.round((latestTimestamp.getTime() - earliestTimestamp.getTime()) / 60000);
+      }
+    }
+
+    return {
+      id: workout.id!,
+      name: workout.name,
+      startedAt: workout.startedAt,
+      completedAt: workout.completedAt,
+      totalVolume,
+      duration,
+      exercises: exerciseDetails,
+    };
+  },
+
+  async getExerciseHistory(exerciseName: string, limit: number = 20): Promise<ExerciseSession[]> {
+    const allExercises = await db.workoutExercises
+      .where('exerciseName').equals(exerciseName).toArray();
+
+    const sessions: ExerciseSession[] = [];
+
+    for (const ex of allExercises) {
+      const workout = await db.workouts.get(ex.workoutId);
+      if (!workout || !workout.completedAt) continue;
+
+      const sets = await db.workoutSets
+        .where('workoutExerciseId').equals(ex.id!)
+        .sortBy('setNumber');
+
+      const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+
+      sessions.push({
+        workoutId: ex.workoutId,
+        date: workout.completedAt,
+        setCount: sets.length,
+        totalVolume,
+        sets: sets.map(s => ({ setNumber: s.setNumber, weight: s.weight, reps: s.reps })),
+      });
+    }
+
+    sessions.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return sessions.slice(0, limit);
+  },
+
+  async getWorkoutVolumeChartData(limit: number = 20): Promise<VolumeDataPoint[]> {
+    const workouts = await this.getCompletedWorkouts(0, limit);
+    const data = workouts.map(w => ({
+      date: w.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      volume: w.totalVolume,
+      fullDate: w.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+    }));
+    // Reverse so oldest is first (left-to-right chronological for chart)
+    return data.reverse();
   },
 };
