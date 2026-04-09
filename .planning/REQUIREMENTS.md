@@ -41,7 +41,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform
 
-- [ ] **PLT-01**: Mobile-first responsive design (works on iPhone Safari)
+- [x] **PLT-01**: Mobile-first responsive design (works on iPhone Safari)
 - [x] **PLT-02**: Local storage with IndexedDB (works offline)
 - [ ] **PLT-03**: PWA-capable (add to home screen)
 
@@ -84,7 +84,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLT-01 | Phase 1: Foundation | Pending |
+| PLT-01 | Phase 1: Foundation | Complete |
 | PLT-02 | Phase 1: Foundation | Complete |
 | LOG-01 | Phase 2: Core Logging | Pending |
 | LOG-02 | Phase 2: Core Logging | Pending |
