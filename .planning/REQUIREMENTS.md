@@ -18,12 +18,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workouts
 
-- [ ] **WRK-01**: User can create named workouts ("Full Body", "Push Day")
-- [ ] **WRK-02**: User can repeat last workout with one tap (loads previous exercises + numbers)
-- [ ] **WRK-03**: Templates auto-update when workout is modified (living templates)
+- [x] **WRK-01**: User can create named workouts ("Full Body", "Push Day")
+- [x] **WRK-02**: User can repeat last workout with one tap (loads previous exercises + numbers)
+- [x] **WRK-03**: Templates auto-update when workout is modified (living templates)
 - [ ] **WRK-04**: User can add exercises mid-workout with freeform entry and autocomplete
-- [ ] **WRK-05**: User can start a new empty workout and name it
-- [ ] **WRK-06**: Active workout recovers on app reload (no data loss mid-workout)
+- [x] **WRK-05**: User can start a new empty workout and name it
+- [x] **WRK-06**: Active workout recovers on app reload (no data loss mid-workout)
 
 ### Feedback
 
@@ -92,12 +92,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LOG-04 | Phase 2: Core Logging | Complete |
 | LOG-05 | Phase 2: Core Logging | Complete |
 | LOG-06 | Phase 2: Core Logging | Complete |
-| WRK-01 | Phase 3: Workouts & Templates | Pending |
-| WRK-02 | Phase 3: Workouts & Templates | Pending |
-| WRK-03 | Phase 3: Workouts & Templates | Pending |
+| WRK-01 | Phase 3: Workouts & Templates | Complete |
+| WRK-02 | Phase 3: Workouts & Templates | Complete |
+| WRK-03 | Phase 3: Workouts & Templates | Complete |
 | WRK-04 | Phase 3: Workouts & Templates | Pending |
-| WRK-05 | Phase 3: Workouts & Templates | Pending |
-| WRK-06 | Phase 3: Workouts & Templates | Pending |
+| WRK-05 | Phase 3: Workouts & Templates | Complete |
+| WRK-06 | Phase 3: Workouts & Templates | Complete |
 | FBK-01 | Phase 4: Feedback & Comparison | Pending |
 | FBK-02 | Phase 4: Feedback & Comparison | Pending |
 | FBK-03 | Phase 4: Feedback & Comparison | Pending |

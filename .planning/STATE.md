@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 3 context gathered
-last_updated: "2026-04-09T06:06:43.269Z"
+status: executing
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-04-09T15:33:14.195Z"
 last_activity: 2026-04-09
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 8
+  completed_plans: 6
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** Every set logged gives immediate feedback, and every workout shows visible progress
-**Current focus:** Phase 02 — core-logging
+**Current focus:** Phase 03 — workouts-templates
 
 ## Current Position
 
-Phase: 3
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 03 (workouts-templates) — EXECUTING
+Plan: 2 of 3
+Status: Ready to execute
 Last activity: 2026-04-09
 
 Progress: [░░░░░░░░░░] 0%
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-core-logging P01 | 9min | 3 tasks | 8 files |
 | Phase 02-core-logging P02 | 3min | 2 tasks | 6 files |
 | Phase 02-core-logging P03 | 2min | 3 tasks | 3 files |
+| Phase 03-workouts-templates P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting current work:
 - [Phase 02-core-logging]: useLiveQuery for all component reads — Dexie reactivity without manual refresh
 - [Phase 02-core-logging]: Accordion tracks expandedExerciseId by DB ID (not array index) to survive reorders
 - [Phase 02-core-logging]: No forced auto-redirect on reload — Resume Workout card instead (friendlier UX)
+- [Phase 03-workouts-templates]: Template upsert integrated into finishWorkout for automatic living templates
+- [Phase 03-workouts-templates]: getRecentWorkouts uses .filter() not .where() for completedAt (Dexie null index pitfall)
 
 ### Pending Todos
 
@@ -89,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-09T06:06:43.259Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-workouts-templates/03-CONTEXT.md
+Last session: 2026-04-09T15:33:14.180Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: None
