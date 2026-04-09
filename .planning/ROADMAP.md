@@ -82,7 +82,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — Comparison engine service with TDD: classifySet, suggestTarget, getSetBadgesForExercise, generateWorkoutSummary
-- [ ] 04-02-PLAN.md — Badge pill component, SetRow badge prop, SetEntryForm nudge text, ExerciseCard wiring
+- [x] 04-02-PLAN.md — Badge pill component, SetRow badge prop, SetEntryForm nudge text, ExerciseCard wiring
 - [x] 04-03-PLAN.md — Post-workout summary screen, finish flow intercept, WorkoutPage redirect guard
 
 **UI hint**: yes
