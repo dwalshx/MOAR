@@ -12,7 +12,8 @@ Every set logged gives immediate feedback, and every workout shows visible progr
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Mobile-first responsive design (works on iPhone Safari) — Phase 1
+- ✓ Local storage with IndexedDB (works offline) — Phase 1
 
 ### Active
 
@@ -88,4 +89,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-08 after initialization*
+*Last updated: 2026-04-09 after Phase 1 completion*
