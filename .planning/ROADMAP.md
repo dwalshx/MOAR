@@ -114,7 +114,10 @@ Plans:
   1. User can add the app to their home screen and launch it as a standalone app (no browser chrome)
   2. App works fully offline after first load (service worker caches all assets)
   3. App prompts for persistent storage to prevent iOS Safari eviction
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 06-01-PLAN.md — PWA infrastructure (manifest, service worker, icons, iOS meta, persistent storage) + install prompt banner
 
 ## Progress
 
@@ -128,4 +131,4 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6
 | 3. Workouts & Templates | 0/3 | Planning complete | - |
 | 4. Feedback & Comparison | 0/3 | Planning complete | - |
 | 5. History & Charts | 2/3 | In Progress|  |
-| 6. PWA Polish | 0/TBD | Not started | - |
+| 6. PWA Polish | 0/1 | Planning complete | - |
