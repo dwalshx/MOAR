@@ -101,8 +101,8 @@ Plans:
 
 Plans:
 - [ ] 05-01-PLAN.md — Install Recharts, add service methods (getCompletedWorkouts, getWorkoutDetail, getExerciseHistory, getWorkoutVolumeChartData) and formatters with TDD
-- [ ] 05-02-PLAN.md — HistoryPage with workout list, infinite scroll, total volume chart + WorkoutDetailPage with exercise breakdown
-- [ ] 05-03-PLAN.md — ExerciseDetailPage with per-exercise history, volume chart, expandable sessions + tappable exercise name links
+- [x] 05-02-PLAN.md — HistoryPage with workout list, infinite scroll, total volume chart + WorkoutDetailPage with exercise breakdown
+- [x] 05-03-PLAN.md — ExerciseDetailPage with per-exercise history, volume chart, expandable sessions + tappable exercise name links
 
 **UI hint**: yes
 
@@ -127,5 +127,5 @@ Phases execute in numeric order: 1 > 2 > 3 > 4 > 5 > 6
 | 2. Core Logging | 0/TBD | Not started | - |
 | 3. Workouts & Templates | 0/3 | Planning complete | - |
 | 4. Feedback & Comparison | 0/3 | Planning complete | - |
-| 5. History & Charts | 0/3 | Planning complete | - |
+| 5. History & Charts | 2/3 | In Progress|  |
 | 6. PWA Polish | 0/TBD | Not started | - |

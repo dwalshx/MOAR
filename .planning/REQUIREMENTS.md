@@ -30,14 +30,14 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **FBK-01**: Per-set micro-feedback badges (PR, +1, matched, volume up, comeback)
 - [x] **FBK-02**: Post-workout summary with volume comparison, win count, highlights
 - [x] **FBK-03**: Progressive overload nudges ("try +1 rep" or "+5 lbs")
-- [ ] **FBK-04**: Per-exercise volume-over-time line chart
-- [ ] **FBK-05**: Total workout volume-over-time line chart
+- [x] **FBK-04**: Per-exercise volume-over-time line chart
+- [x] **FBK-05**: Total workout volume-over-time line chart
 
 ### History
 
-- [ ] **HST-01**: View list of past workouts (date, name, total volume)
-- [ ] **HST-02**: View exercise history across all workouts
-- [ ] **HST-03**: View workout detail (exercises, sets, volume)
+- [x] **HST-01**: View list of past workouts (date, name, total volume)
+- [x] **HST-02**: View exercise history across all workouts
+- [x] **HST-03**: View workout detail (exercises, sets, volume)
 
 ### Platform
 
@@ -101,11 +101,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FBK-01 | Phase 4: Feedback & Comparison | Complete |
 | FBK-02 | Phase 4: Feedback & Comparison | Complete |
 | FBK-03 | Phase 4: Feedback & Comparison | Complete |
-| HST-01 | Phase 5: History & Charts | Pending |
-| HST-02 | Phase 5: History & Charts | Pending |
-| HST-03 | Phase 5: History & Charts | Pending |
-| FBK-04 | Phase 5: History & Charts | Pending |
-| FBK-05 | Phase 5: History & Charts | Pending |
+| HST-01 | Phase 5: History & Charts | Complete |
+| HST-02 | Phase 5: History & Charts | Complete |
+| HST-03 | Phase 5: History & Charts | Complete |
+| FBK-04 | Phase 5: History & Charts | Complete |
+| FBK-05 | Phase 5: History & Charts | Complete |
 | PLT-03 | Phase 6: PWA Polish | Pending |
 
 **Coverage:**
