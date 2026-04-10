@@ -1,5 +1,4 @@
 import { db } from '../db/database';
-import type { WorkoutSet } from '../db/models';
 
 // --- Types ---
 

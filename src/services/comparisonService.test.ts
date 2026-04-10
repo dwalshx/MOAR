@@ -7,7 +7,6 @@ import {
   getSetBadgesForExercise,
   generateWorkoutSummary,
 } from './comparisonService';
-import type { BadgeType } from './comparisonService';
 
 beforeEach(async () => {
   await db.workoutSets.clear();
