@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import WorkoutPage from './pages/WorkoutPage';
 import HistoryPage from './pages/HistoryPage';
 import ExerciseDetailPage from './pages/ExerciseDetailPage';
+import WorkoutDetailPage from './pages/WorkoutDetailPage';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
           <Route index element={<HomePage />} />
           <Route path="workout/:id" element={<WorkoutPage />} />
           <Route path="history" element={<HistoryPage />} />
+          <Route path="history/:id" element={<WorkoutDetailPage />} />
           <Route path="exercise/:name" element={<ExerciseDetailPage />} />
         </Route>
       </Routes>
