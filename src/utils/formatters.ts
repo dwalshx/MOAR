@@ -22,3 +22,28 @@ export function formatVolume(totalLbs: number): string {
   }
   return `${totalLbs.toLocaleString()} lbs`;
 }
+
+export function formatAbsoluteDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+export function formatChartDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+export function formatDuration(minutes: number | null): string {
+  if (minutes === null) return '--';
+  if (minutes === 0) return '< 1 min';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours === 0) return `${mins} min`;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}

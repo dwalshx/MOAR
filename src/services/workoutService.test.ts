@@ -3,10 +3,8 @@ import { db } from '../db/database';
 import { workoutService, normalizeExerciseName } from './workoutService';
 
 beforeEach(async () => {
-  await db.workoutSets.clear();
-  await db.workoutExercises.clear();
-  await db.workouts.clear();
-  await db.workoutTemplates.clear();
+  await db.delete();
+  await db.open();
 });
 
 describe('normalizeExerciseName', () => {
@@ -211,16 +209,22 @@ describe('getWorkoutVolume', () => {
 
 describe('getRecentWorkouts', () => {
   it('returns completed workouts sorted by startedAt desc with totalVolume', async () => {
-    // Create two completed workouts
-    const w1 = await workoutService.startWorkout();
+    // Create two completed workouts with distinct startedAt times
+    const w1 = await db.workouts.add({
+      name: 'Workout 1',
+      startedAt: new Date('2026-04-01T10:00:00'),
+      completedAt: new Date('2026-04-01T11:00:00'),
+    });
     const ex1 = await workoutService.addExercise(w1, 'squat');
     await workoutService.logSet(ex1, 100, 10); // 1000
-    await workoutService.finishWorkout(w1);
 
-    const w2 = await workoutService.startWorkout();
+    const w2 = await db.workouts.add({
+      name: 'Workout 2',
+      startedAt: new Date('2026-04-02T10:00:00'),
+      completedAt: new Date('2026-04-02T11:00:00'),
+    });
     const ex2 = await workoutService.addExercise(w2, 'bench press');
     await workoutService.logSet(ex2, 50, 10); // 500
-    await workoutService.finishWorkout(w2);
 
     const recent = await workoutService.getRecentWorkouts(10);
     expect(recent.length).toBe(2);
