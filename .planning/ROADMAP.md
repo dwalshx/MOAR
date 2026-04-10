@@ -117,7 +117,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 06-01-PLAN.md — PWA infrastructure (manifest, service worker, icons, iOS meta, persistent storage) + install prompt banner
+- [x] 06-01-PLAN.md — PWA infrastructure (manifest, service worker, icons, iOS meta, persistent storage) + install prompt banner
 
 ## Progress
 

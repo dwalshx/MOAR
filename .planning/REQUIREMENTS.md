@@ -43,7 +43,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PLT-01**: Mobile-first responsive design (works on iPhone Safari)
 - [x] **PLT-02**: Local storage with IndexedDB (works offline)
-- [ ] **PLT-03**: PWA-capable (add to home screen)
+- [x] **PLT-03**: PWA-capable (add to home screen)
 
 ## v2 Requirements
 
@@ -106,7 +106,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HST-03 | Phase 5: History & Charts | Complete |
 | FBK-04 | Phase 5: History & Charts | Complete |
 | FBK-05 | Phase 5: History & Charts | Complete |
-| PLT-03 | Phase 6: PWA Polish | Pending |
+| PLT-03 | Phase 6: PWA Polish | Complete |
 
 **Coverage:**
 - v1 requirements: 23 total
