@@ -24,6 +24,10 @@ Every set logged gives immediate feedback, and every workout shows visible progr
 - ✓ Per-set micro-feedback badges (PR, +1, matched, volume up, comeback) — Phase 4
 - ✓ Post-workout summary (volume comparison, win count, highlights) — Phase 4
 - ✓ Progressive overload nudges (suggest +1 rep or +5 lbs based on last session) — Phase 4
+- ✓ Per-exercise history and volume-over-time chart — Phase 5
+- ✓ Total workout volume-over-time chart — Phase 5
+- ✓ Workout history list (date, name, total volume) — Phase 5
+- ✓ PWA-capable (add to home screen, offline) — Phase 6
 
 ### Active
 
@@ -99,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-09 after Phase 4 completion*
+*Last updated: 2026-04-10 after Phase 6 completion — v1.0 COMPLETE*
