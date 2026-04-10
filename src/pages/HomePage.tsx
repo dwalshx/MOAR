@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import { workoutService } from '../services/workoutService';
 import RecentWorkouts from '../components/home/RecentWorkouts';
+import InstallPromptBanner from '../components/pwa/InstallPromptBanner';
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -52,6 +53,8 @@ export default function HomePage() {
       </button>
 
       <RecentWorkouts />
+
+      <InstallPromptBanner />
     </div>
   );
 }
