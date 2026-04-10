@@ -345,15 +345,21 @@ describe('upsertTemplate (via finishWorkout)', () => {
 
 describe('getCompletedWorkouts', () => {
   it('returns completed workouts sorted by completedAt descending', async () => {
-    const w1 = await workoutService.startWorkout();
+    const w1 = await db.workouts.add({
+      name: 'Workout 1',
+      startedAt: new Date('2026-04-01T10:00:00'),
+      completedAt: new Date('2026-04-01T11:00:00'),
+    });
     const ex1 = await workoutService.addExercise(w1, 'squat');
     await workoutService.logSet(ex1, 100, 10);
-    await workoutService.finishWorkout(w1);
 
-    const w2 = await workoutService.startWorkout();
+    const w2 = await db.workouts.add({
+      name: 'Workout 2',
+      startedAt: new Date('2026-04-02T10:00:00'),
+      completedAt: new Date('2026-04-02T11:00:00'),
+    });
     const ex2 = await workoutService.addExercise(w2, 'bench press');
     await workoutService.logSet(ex2, 50, 10);
-    await workoutService.finishWorkout(w2);
 
     const results = await workoutService.getCompletedWorkouts(0, 20);
     expect(results.length).toBe(2);
