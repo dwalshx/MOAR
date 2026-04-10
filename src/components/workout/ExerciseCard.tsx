@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import type { WorkoutExercise } from '../../db/models';
@@ -22,6 +23,7 @@ export default function ExerciseCard({
   isExpanded,
   onToggle,
 }: ExerciseCardProps) {
+  const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const [badges, setBadges] = useState<Map<number, BadgeType>>(new Map());
   const [isComeback, setIsComeback] = useState(false);
@@ -130,7 +132,13 @@ export default function ExerciseCard({
         role="button"
         tabIndex={0}
       >
-        <span className="font-semibold text-text-primary truncate max-w-[70%]">
+        <span
+          className="font-semibold text-accent cursor-pointer active:opacity-80 truncate max-w-[70%]"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/exercise/${encodeURIComponent(exercise.exerciseName)}`);
+          }}
+        >
           {exercise.exerciseName}
         </span>
         <svg
