@@ -67,19 +67,33 @@ export default function ExerciseInput({ onAddExercise }: ExerciseInputProps) {
     }, 200);
   };
 
+  const canSubmit = inputValue.trim().length > 0;
+
   return (
     <form onSubmit={handleSubmit} className="relative">
-      <input
-        type="text"
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onFocus={handleFocus}
-        onBlur={handleBlur}
-        placeholder="Add exercise..."
-        className="bg-bg-card border border-border rounded-lg px-4 py-3
-                   text-text-primary placeholder-text-secondary w-full min-h-[44px]
-                   outline-none focus:border-accent transition-colors"
-      />
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
+          placeholder="Add exercise..."
+          enterKeyHint="done"
+          className="flex-1 bg-bg-card border border-border rounded-lg px-4 py-3
+                     text-text-primary placeholder-text-secondary min-h-[44px]
+                     outline-none focus:border-accent transition-colors"
+        />
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className="bg-accent text-white font-semibold rounded-lg px-5 min-h-[44px]
+                     disabled:opacity-40 disabled:cursor-not-allowed
+                     active:bg-accent/80 transition-colors"
+        >
+          Add
+        </button>
+      </div>
 
       {showDropdown && (
         <div className="absolute z-10 w-full bg-bg-secondary border border-border
