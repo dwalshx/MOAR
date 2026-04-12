@@ -102,8 +102,9 @@ export default function HeroSection() {
           <img
             src="/moar-hero.png"
             alt="MOAR"
-            className="w-full h-auto block"
+            className="w-full block object-cover"
             style={{
+              height: '140px',
               opacity: mounted ? 1 : 0,
               transition: 'opacity 0.8s ease-out',
             }}
@@ -114,7 +115,7 @@ export default function HeroSection() {
 
       {/* Content overlapping bottom of image */}
       <div
-        className="relative z-10 px-5 pb-5 -mt-14 text-center"
+        className="relative z-10 px-5 pb-5 -mt-10 text-center"
         style={{
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(8px)',
@@ -124,26 +125,27 @@ export default function HeroSection() {
         {isNewUser ? (
           /* --- NEW USER --- */
           <div>
-            <p className="text-text-secondary text-sm italic mb-2">
+            <p className="text-accent text-lg font-bold italic mb-2">
               {tagline}
             </p>
-            <p className="text-text-secondary text-sm leading-relaxed mb-3">
-              Log your lifts faster than Notes. See exactly what to beat.<br />
+            <p className="text-text-primary text-base leading-relaxed mb-4">
+              Log your lifts faster than Notes.<br />
+              See exactly what to beat.<br />
               Get a little stronger every time.
             </p>
-            <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
-              <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+            <div className="flex items-center justify-center gap-3 text-sm text-text-secondary">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block" />
                 Instant feedback
               </span>
               <span className="text-border">|</span>
-              <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-success inline-block" />
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />
                 Visible progress
               </span>
               <span className="text-border">|</span>
-              <span className="inline-flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
                 Works offline
               </span>
             </div>
