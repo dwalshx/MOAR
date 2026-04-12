@@ -110,18 +110,11 @@ export default function HeroSection() {
           />
         </picture>
 
-        {/* Bottom fade into content area */}
-        <div
-          className="absolute bottom-0 left-0 right-0 h-16"
-          style={{
-            background: 'linear-gradient(to bottom, transparent, black)',
-          }}
-        />
       </div>
 
-      {/* Content below the image */}
+      {/* Content overlapping bottom of image */}
       <div
-        className="relative z-10 px-5 pb-5 -mt-2"
+        className="relative z-10 px-5 pb-5 -mt-14 text-center"
         style={{
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(8px)',
@@ -131,14 +124,14 @@ export default function HeroSection() {
         {isNewUser ? (
           /* --- NEW USER --- */
           <div>
-            <p className="text-text-secondary text-sm italic mb-1">
+            <p className="text-text-secondary text-sm italic mb-2">
               {tagline}
             </p>
             <p className="text-text-secondary text-sm leading-relaxed mb-3">
-              Log your lifts faster than Notes. See exactly what to beat.
+              Log your lifts faster than Notes. See exactly what to beat.<br />
               Get a little stronger every time.
             </p>
-            <div className="flex items-center gap-2 text-xs text-text-secondary">
+            <div className="flex items-center justify-center gap-2 text-xs text-text-secondary">
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-accent inline-block" />
                 Instant feedback
@@ -158,14 +151,9 @@ export default function HeroSection() {
         ) : (
           /* --- RETURNING USER --- */
           <div>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-text-secondary text-sm">
-                {greeting}
-              </p>
-              <p className="text-accent text-sm font-medium italic">
-                {tagline}
-              </p>
-            </div>
+            <p className="text-text-secondary text-sm mb-3">
+              {greeting} &middot; <span className="text-accent italic">{tagline}</span>
+            </p>
 
             {/* Stats grid */}
             <div className="grid grid-cols-3 gap-3">
