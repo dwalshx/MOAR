@@ -17,10 +17,19 @@ export function formatRelativeDate(date: Date): string {
 }
 
 export function formatVolume(totalLbs: number): string {
+  if (totalLbs === 0) return '0 lbs';
   if (totalLbs >= 1000) {
     return `${(totalLbs / 1000).toFixed(1)}k lbs`;
   }
   return `${totalLbs.toLocaleString()} lbs`;
+}
+
+/**
+ * Compute effective volume for a set, substituting body weight when logged weight is 0.
+ */
+export function setVolume(weight: number, reps: number, bodyWeight: number | null): number {
+  const effectiveWeight = weight > 0 ? weight : (bodyWeight ?? 0);
+  return effectiveWeight * reps;
 }
 
 export function formatAbsoluteDate(date: Date): string {

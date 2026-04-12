@@ -1,4 +1,6 @@
 import { db } from '../db/database';
+import { setVolume } from '../utils/formatters';
+import { settingsService } from './settingsService';
 
 // --- Types ---
 
@@ -248,7 +250,7 @@ export async function getLastSessionSetsForExercise(
     reps: s.reps,
   }));
 
-  const previousVolume = lastSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+  const previousVolume = lastSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
 
   return { sets, previousVolume };
 }
@@ -297,7 +299,7 @@ export async function generateWorkoutSummary(
       .where('workoutExerciseId')
       .equals(ex.id!)
       .toArray();
-    const currentVolume = currentSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    const currentVolume = currentSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
     totalVolume += currentVolume;
 
     // Find previous session for this specific exercise
@@ -325,7 +327,7 @@ export async function generateWorkoutSummary(
           .where('workoutExerciseId')
           .anyOf(lastExIds)
           .toArray();
-        previousVolume = prevSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+        previousVolume = prevSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
 
         if (currentVolume > previousVolume) direction = 'up';
         else if (currentVolume < previousVolume) direction = 'down';
@@ -372,7 +374,7 @@ export async function generateWorkoutSummary(
         .where('workoutExerciseId')
         .anyOf(prevExIds)
         .toArray();
-      prevTotal = prevSets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      prevTotal = prevSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
     }
     previousTotalVolume = prevTotal;
     if (prevTotal > 0) {

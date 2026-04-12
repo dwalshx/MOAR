@@ -1,5 +1,7 @@
 import { db } from '../db/database';
 import type { Workout } from '../db/models';
+import { setVolume } from '../utils/formatters';
+import { settingsService } from './settingsService';
 
 export interface RecentWorkout {
   id: number;
@@ -99,7 +101,7 @@ export const workoutService = {
     const exerciseIds = exercises.map(e => e.id!);
     const sets = await db.workoutSets
       .where('workoutExerciseId').anyOf(exerciseIds).toArray();
-    return sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    return sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
   },
 
   async getRecentWorkouts(limit: number = 10): Promise<RecentWorkout[]> {
@@ -231,7 +233,7 @@ export const workoutService = {
         .where('workoutExerciseId').equals(ex.id!)
         .sortBy('setNumber');
 
-      const exVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      const exVolume = sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
       totalVolume += exVolume;
 
       for (const s of sets) {
@@ -284,7 +286,7 @@ export const workoutService = {
         .where('workoutExerciseId').equals(ex.id!)
         .sortBy('setNumber');
 
-      const totalVolume = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+      const totalVolume = sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
 
       sessions.push({
         workoutId: ex.workoutId,

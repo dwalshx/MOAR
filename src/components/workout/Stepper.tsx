@@ -1,87 +1,63 @@
-import { useCallback } from 'react';
-import { useLongPress } from '../../hooks/useLongPress';
-
 interface StepperProps {
   value: number;
-  onTapIncrement: number;
-  onLongPressIncrement: number;
   onChange: (newValue: number) => void;
   min?: number;
   label?: string;
+  increments?: number[];
 }
 
 export default function Stepper({
   value,
-  onTapIncrement,
-  onLongPressIncrement,
   onChange,
   min = 0,
   label,
+  increments = [10, 1],
 }: StepperProps) {
-  const clamp = useCallback(
-    (v: number) => Math.max(min, v),
-    [min]
-  );
+  const clamp = (v: number) => Math.max(min, v);
 
-  // Minus button handlers
-  const minusHandlers = useLongPress(
-    () => onChange(clamp(value - onTapIncrement)),
-    () => onChange(clamp(value - onLongPressIncrement)),
-  );
-
-  // Plus button handlers
-  const plusHandlers = useLongPress(
-    () => onChange(clamp(value + onTapIncrement)),
-    () => onChange(clamp(value + onLongPressIncrement)),
-  );
-
-  const handleTouchStart = (
-    handler: () => void
-  ) => (e: React.TouchEvent) => {
-    e.preventDefault(); // Prevent context menu on long-press
-    handler();
-  };
+  // Format display: show decimal only if value has one
+  const displayValue = value % 1 === 0 ? value.toString() : value.toFixed(1);
 
   return (
-    <div className="flex items-center gap-3 touch-action-manipulation select-none"
-         style={{ touchAction: 'manipulation' }}>
-      {/* Minus button */}
-      <button
-        type="button"
-        className="min-w-[44px] min-h-[44px] flex items-center justify-center
-                   bg-bg-card rounded-lg text-text-primary text-xl font-bold
-                   active:bg-accent-hover transition-colors"
-        onTouchStart={handleTouchStart(minusHandlers.onTouchStart)}
-        onTouchEnd={minusHandlers.onTouchEnd}
-        onMouseDown={minusHandlers.onMouseDown}
-        onMouseUp={minusHandlers.onMouseUp}
-      >
-        -
-      </button>
+    <div
+      className="flex items-center gap-1.5 select-none"
+      style={{ touchAction: 'manipulation' }}
+    >
+      {/* Minus buttons (largest to smallest) */}
+      {increments.map((inc) => (
+        <button
+          key={`minus-${inc}`}
+          type="button"
+          className="min-w-[36px] min-h-[44px] flex items-center justify-center
+                     bg-bg-card rounded-lg text-text-secondary text-sm font-semibold
+                     active:bg-accent-hover active:text-white transition-colors"
+          onClick={() => onChange(clamp(value - inc))}
+        >
+          -{inc % 1 === 0 ? inc : inc.toFixed(1)}
+        </button>
+      ))}
 
       {/* Value display */}
-      <div className="flex flex-col items-center min-w-[48px]">
-        <span className="text-2xl font-bold text-text-primary">
-          {value}
-        </span>
+      <div className="flex flex-col items-center min-w-[44px] px-1">
+        <span className="text-xl font-bold text-text-primary">{displayValue}</span>
         {label && (
-          <span className="text-xs text-text-secondary">{label}</span>
+          <span className="text-[10px] text-text-secondary leading-none">{label}</span>
         )}
       </div>
 
-      {/* Plus button */}
-      <button
-        type="button"
-        className="min-w-[44px] min-h-[44px] flex items-center justify-center
-                   bg-bg-card rounded-lg text-text-primary text-xl font-bold
-                   active:bg-accent-hover transition-colors"
-        onTouchStart={handleTouchStart(plusHandlers.onTouchStart)}
-        onTouchEnd={plusHandlers.onTouchEnd}
-        onMouseDown={plusHandlers.onMouseDown}
-        onMouseUp={plusHandlers.onMouseUp}
-      >
-        +
-      </button>
+      {/* Plus buttons (smallest to largest) */}
+      {[...increments].reverse().map((inc) => (
+        <button
+          key={`plus-${inc}`}
+          type="button"
+          className="min-w-[36px] min-h-[44px] flex items-center justify-center
+                     bg-bg-card rounded-lg text-text-secondary text-sm font-semibold
+                     active:bg-accent-hover active:text-white transition-colors"
+          onClick={() => onChange(clamp(value + inc))}
+        >
+          +{inc % 1 === 0 ? inc : inc.toFixed(1)}
+        </button>
+      ))}
     </div>
   );
 }

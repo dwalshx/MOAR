@@ -1,6 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import { useEffect, useState } from 'react';
+import { setVolume } from '../../utils/formatters';
+import { settingsService } from '../../services/settingsService';
+import BodyWeightSetting from './BodyWeightSetting';
 
 const TAGLINES = [
   'One more rep.',
@@ -39,7 +42,7 @@ async function computeStats(): Promise<Stats> {
   let totalVolume = 0;
   const allSets = await db.workoutSets.toArray();
   for (const s of allSets) {
-    totalVolume += s.weight * s.reps;
+    totalVolume += setVolume(s.weight, s.reps, settingsService.getBodyWeight());
   }
 
   let streak = 0;
@@ -185,6 +188,10 @@ export default function HeroSection() {
             </div>
           </div>
         )}
+
+        <div className="flex justify-center">
+          <BodyWeightSetting />
+        </div>
       </div>
     </div>
   );

@@ -47,12 +47,11 @@ export default function SetEntryForm({
   return (
     <div className="space-y-4 pt-2">
       {/* Weight stepper row */}
-      <div className="flex items-center justify-between">
-        <span className="text-text-secondary text-sm font-medium">Weight</span>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-text-secondary text-xs font-medium">Weight</span>
         <Stepper
           value={weight}
-          onTapIncrement={5}
-          onLongPressIncrement={1}
+          increments={[10, 1, 0.5]}
           onChange={setWeight}
           min={0}
           label="lbs"
@@ -60,12 +59,11 @@ export default function SetEntryForm({
       </div>
 
       {/* Reps stepper row */}
-      <div className="flex items-center justify-between">
-        <span className="text-text-secondary text-sm font-medium">Reps</span>
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-text-secondary text-xs font-medium">Reps</span>
         <Stepper
           value={reps}
-          onTapIncrement={1}
-          onLongPressIncrement={1}
+          increments={[5, 1]}
           onChange={setReps}
           min={1}
           label="reps"

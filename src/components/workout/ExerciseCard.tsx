@@ -6,6 +6,8 @@ import type { WorkoutExercise } from '../../db/models';
 import type { BadgeType } from '../../services/comparisonService';
 import { getSetBadgesForExercise, getLastSessionSetsForExercise, suggestTarget } from '../../services/comparisonService';
 import { workoutService } from '../../services/workoutService';
+import { setVolume } from '../../utils/formatters';
+import { settingsService } from '../../services/settingsService';
 import SetRow from './SetRow';
 import SetEntryForm from './SetEntryForm';
 import Badge from './Badge';
@@ -48,7 +50,8 @@ export default function ExerciseCard({
       setIsComeback(result.isComeback);
     });
     // Compute current volume
-    const vol = sets.reduce((sum, s) => sum + s.weight * s.reps, 0);
+    const bw = settingsService.getBodyWeight();
+    const vol = sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, bw), 0);
     setCurrentVolume(vol);
   }, [sets, exercise.id, workoutId]);
 
