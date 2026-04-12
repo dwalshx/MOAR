@@ -2,7 +2,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import { useEffect, useState } from 'react';
 
-// Motivational taglines that rotate
 const TAGLINES = [
   'One more rep.',
   'Beat yesterday.',
@@ -13,7 +12,6 @@ const TAGLINES = [
   'You showed up.',
 ];
 
-// Pick a consistent tagline per day so it doesn't change on re-renders
 function getDailyTagline(): string {
   const dayOfYear = Math.floor(
     (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000
@@ -44,39 +42,27 @@ async function computeStats(): Promise<Stats> {
     totalVolume += s.weight * s.reps;
   }
 
-  // Compute streak: consecutive days with a workout (looking backwards from today)
   let streak = 0;
   if (workouts.length > 0) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
-    // Get unique workout dates (normalized to day)
     const workoutDays = new Set<number>();
     for (const w of workouts) {
       const d = new Date(w.completedAt!);
       d.setHours(0, 0, 0, 0);
       workoutDays.add(d.getTime());
     }
-
-    // Check today and walk backwards
     const checkDay = new Date(today);
-    // If no workout today, start from yesterday
     if (!workoutDays.has(checkDay.getTime())) {
       checkDay.setDate(checkDay.getDate() - 1);
     }
-
     while (workoutDays.has(checkDay.getTime())) {
       streak++;
       checkDay.setDate(checkDay.getDate() - 1);
     }
   }
 
-  return {
-    totalWorkouts: workouts.length,
-    totalSets: sets,
-    totalVolume,
-    currentStreak: streak,
-  };
+  return { totalWorkouts: workouts.length, totalSets: sets, totalVolume, currentStreak: streak };
 }
 
 function formatBigNumber(n: number): string {
@@ -100,7 +86,6 @@ export default function HeroSection() {
     computeStats().then(setStats);
   }, [workoutCount]);
 
-  // Trigger mount animation
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 50);
     return () => clearTimeout(timer);
@@ -109,64 +94,50 @@ export default function HeroSection() {
   const isNewUser = !stats || stats.totalWorkouts === 0;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-bg-card via-bg-secondary to-bg-card border border-border mb-6">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Large faded M watermark */}
+    <div className="relative overflow-hidden rounded-2xl bg-black border border-border/50 mb-6">
+      {/* Fire hero image banner */}
+      <div className="relative">
+        <picture>
+          <source srcSet="/moar-hero.webp" type="image/webp" />
+          <img
+            src="/moar-hero.png"
+            alt="MOAR"
+            className="w-full h-auto block"
+            style={{
+              opacity: mounted ? 1 : 0,
+              transition: 'opacity 0.8s ease-out',
+            }}
+          />
+        </picture>
+
+        {/* Bottom fade into content area */}
         <div
-          className="absolute -right-8 -top-6 text-[180px] font-black select-none pointer-events-none leading-none"
+          className="absolute bottom-0 left-0 right-0 h-16"
           style={{
-            color: 'rgba(249, 115, 22, 0.06)',
-            fontFamily: 'Arial, Helvetica, sans-serif',
-          }}
-        >
-          M
-        </div>
-        {/* Accent glow */}
-        <div
-          className="absolute -bottom-20 -left-20 w-40 h-40 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, rgba(249, 115, 22, 0.08) 0%, transparent 70%)',
+            background: 'linear-gradient(to bottom, transparent, black)',
           }}
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 p-5">
+      {/* Content below the image */}
+      <div
+        className="relative z-10 px-5 pb-5 -mt-2"
+        style={{
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? 'translateY(0)' : 'translateY(8px)',
+          transition: 'opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s',
+        }}
+      >
         {isNewUser ? (
-          /* --- NEW USER: Welcome screen --- */
-          <div
-            className="transition-all duration-700 ease-out"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(12px)',
-            }}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center font-black text-2xl"
-                style={{
-                  background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)',
-                  color: '#fff',
-                }}
-              >
-                M
-              </div>
-              <div>
-                <h1 className="text-2xl font-black text-text-primary tracking-tight">
-                  MOAR
-                </h1>
-                <p className="text-text-secondary text-sm -mt-0.5">
-                  {tagline}
-                </p>
-              </div>
-            </div>
-
+          /* --- NEW USER --- */
+          <div>
+            <p className="text-text-secondary text-sm italic mb-1">
+              {tagline}
+            </p>
             <p className="text-text-secondary text-sm leading-relaxed mb-3">
               Log your lifts faster than Notes. See exactly what to beat.
               Get a little stronger every time.
             </p>
-
             <div className="flex items-center gap-2 text-xs text-text-secondary">
               <span className="inline-flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-accent inline-block" />
@@ -185,26 +156,15 @@ export default function HeroSection() {
             </div>
           </div>
         ) : (
-          /* --- RETURNING USER: Stats dashboard --- */
-          <div
-            className="transition-all duration-700 ease-out"
-            style={{
-              opacity: mounted ? 1 : 0,
-              transform: mounted ? 'translateY(0)' : 'translateY(12px)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-text-secondary text-sm">{greeting}</p>
-                <h1 className="text-2xl font-black text-text-primary tracking-tight">
-                  MOAR
-                </h1>
-              </div>
-              <div className="text-right">
-                <p className="text-accent text-sm font-medium italic">
-                  "{tagline}"
-                </p>
-              </div>
+          /* --- RETURNING USER --- */
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-text-secondary text-sm">
+                {greeting}
+              </p>
+              <p className="text-accent text-sm font-medium italic">
+                {tagline}
+              </p>
             </div>
 
             {/* Stats grid */}
@@ -213,14 +173,14 @@ export default function HeroSection() {
                 value={stats.totalWorkouts.toString()}
                 label="Workouts"
                 mounted={mounted}
-                delay={100}
+                delay={400}
               />
               <StatCard
                 value={formatBigNumber(stats.totalVolume)}
                 label="lbs moved"
                 accent
                 mounted={mounted}
-                delay={200}
+                delay={550}
               />
               <StatCard
                 value={
@@ -230,7 +190,7 @@ export default function HeroSection() {
                 }
                 label={stats.currentStreak > 0 ? 'Streak' : 'Total sets'}
                 mounted={mounted}
-                delay={300}
+                delay={700}
               />
             </div>
           </div>
@@ -264,7 +224,7 @@ function StatCard({
 
   return (
     <div
-      className="bg-bg-primary/50 rounded-xl p-3 text-center transition-all duration-500 ease-out"
+      className="bg-bg-card/80 backdrop-blur-sm rounded-xl p-3 text-center transition-all duration-500 ease-out border border-border/30"
       style={{
         opacity: show ? 1 : 0,
         transform: show ? 'translateY(0) scale(1)' : 'translateY(8px) scale(0.95)',
