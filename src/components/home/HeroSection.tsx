@@ -3,6 +3,7 @@ import { db } from '../../db/database';
 import { useEffect, useState } from 'react';
 import { setVolume } from '../../utils/formatters';
 import { settingsService } from '../../services/settingsService';
+import { useHeroImage } from '../../hooks/useHeroImage';
 import BodyWeightSetting from './BodyWeightSetting';
 
 const TAGLINES = [
@@ -95,25 +96,22 @@ export default function HeroSection() {
   }, []);
 
   const isNewUser = !stats || stats.totalWorkouts === 0;
+  const hero = useHeroImage();
 
   return (
     <div className="relative overflow-hidden rounded-2xl bg-black border border-border/50 mb-6">
-      {/* Fire hero image banner */}
+      {/* Random hero image banner */}
       <div className="relative">
-        <picture>
-          <source srcSet="/moar-hero.webp" type="image/webp" />
-          <img
-            src="/moar-hero.png"
-            alt="MOAR"
-            className="w-full block object-cover object-center"
-            style={{
-              height: '160px',
-              opacity: mounted ? 1 : 0,
-              transition: 'opacity 0.8s ease-out',
-            }}
-          />
-        </picture>
-
+        <img
+          src={`/heroes/${hero.file}`}
+          alt="MOAR"
+          className="w-full block object-cover object-center"
+          style={{
+            height: '160px',
+            opacity: mounted ? 1 : 0,
+            transition: 'opacity 0.8s ease-out',
+          }}
+        />
       </div>
 
       {/* Content overlapping bottom of image */}
