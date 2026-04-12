@@ -102,9 +102,9 @@ export default function HeroSection() {
           <img
             src="/moar-hero.png"
             alt="MOAR"
-            className="w-full block object-cover"
+            className="w-full block object-cover object-center"
             style={{
-              height: '140px',
+              height: '160px',
               opacity: mounted ? 1 : 0,
               transition: 'opacity 0.8s ease-out',
             }}
@@ -115,7 +115,7 @@ export default function HeroSection() {
 
       {/* Content overlapping bottom of image */}
       <div
-        className="relative z-10 px-5 pb-5 -mt-10 text-center"
+        className="relative z-10 px-5 pb-5 -mt-4 text-center"
         style={{
           opacity: mounted ? 1 : 0,
           transform: mounted ? 'translateY(0)' : 'translateY(8px)',
