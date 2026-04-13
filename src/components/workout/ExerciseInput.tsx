@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { workoutService } from '../../services/workoutService';
+import { EXERCISE_LIBRARY } from '../../data/exerciseLibrary';
 
 interface ExerciseInputProps {
   onAddExercise: (name: string) => void;
@@ -12,9 +13,19 @@ export default function ExerciseInput({ onAddExercise }: ExerciseInputProps) {
   const [isFocused, setIsFocused] = useState(false);
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load exercise names on mount
+  // Load exercise names on mount — merge user history with library
   useEffect(() => {
-    workoutService.getExerciseNames().then(setExerciseNames);
+    workoutService.getExerciseNames().then(userNames => {
+      // User history first (takes priority), then library entries not already in history
+      const merged = [...userNames];
+      const lowerSet = new Set(userNames.map(n => n.toLowerCase()));
+      for (const lib of EXERCISE_LIBRARY) {
+        if (!lowerSet.has(lib.toLowerCase())) {
+          merged.push(lib);
+        }
+      }
+      setExerciseNames(merged);
+    });
   }, []);
 
   // Debounce the search input by 150ms
