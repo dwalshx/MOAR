@@ -18,6 +18,7 @@ interface ExerciseCardProps {
   workoutId: number;
   isExpanded: boolean;
   onToggle: () => void;
+  onDelete?: (exerciseId: number) => void;
 }
 
 export default function ExerciseCard({
@@ -25,6 +26,7 @@ export default function ExerciseCard({
   workoutId,
   isExpanded,
   onToggle,
+  onDelete,
 }: ExerciseCardProps) {
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -147,14 +149,34 @@ export default function ExerciseCard({
         >
           {exercise.exerciseName}
         </span>
-        <svg
-          className="w-5 h-5 text-text-secondary transition-transform rotate-180"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
+        <div className="flex items-center gap-1">
+          {onDelete && (
+            <button
+              type="button"
+              className="min-w-[36px] min-h-[36px] flex items-center justify-center
+                         text-red-500/60 hover:text-red-500 active:text-red-400 transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (confirm(`Remove ${exercise.exerciseName} and all its sets?`)) {
+                  onDelete(exercise.id!);
+                }
+              }}
+              aria-label="Delete exercise"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
+          )}
+          <svg
+            className="w-5 h-5 text-text-secondary transition-transform rotate-180"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </div>
 
       {/* Progress toward last session + PR */}

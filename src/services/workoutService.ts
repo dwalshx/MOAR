@@ -84,6 +84,24 @@ export const workoutService = {
     await db.workoutSets.delete(setId);
   },
 
+  async deleteExercise(workoutExerciseId: number): Promise<void> {
+    // Delete all sets for this exercise, then the exercise itself
+    const sets = await db.workoutSets.where('workoutExerciseId').equals(workoutExerciseId).toArray();
+    await db.workoutSets.bulkDelete(sets.map(s => s.id!));
+    await db.workoutExercises.delete(workoutExerciseId);
+  },
+
+  async deleteWorkout(workoutId: number): Promise<void> {
+    // Delete all sets, exercises, then the workout
+    const exercises = await db.workoutExercises.where('workoutId').equals(workoutId).toArray();
+    for (const ex of exercises) {
+      const sets = await db.workoutSets.where('workoutExerciseId').equals(ex.id!).toArray();
+      await db.workoutSets.bulkDelete(sets.map(s => s.id!));
+    }
+    await db.workoutExercises.bulkDelete(exercises.map(e => e.id!));
+    await db.workouts.delete(workoutId);
+  },
+
   async getActiveWorkout(): Promise<Workout | undefined> {
     // Pitfall #1: Dexie cannot index undefined/null — use .filter() not .where()
     return db.workouts.filter(w => !w.completedAt).first();

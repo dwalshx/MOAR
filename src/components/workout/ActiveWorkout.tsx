@@ -74,6 +74,13 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
     setExpandedExerciseId((prev) => (prev === exerciseId ? null : exerciseId));
   };
 
+  const handleDeleteExercise = async (exerciseId: number) => {
+    await workoutService.deleteExercise(exerciseId);
+    if (expandedExerciseId === exerciseId) {
+      setExpandedExerciseId(null);
+    }
+  };
+
   // Show summary screen after finishing
   if (summary) {
     return <WorkoutSummary summary={summary} onDone={() => navigate('/')} />;
@@ -116,6 +123,7 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
               workoutId={workoutId}
               isExpanded={expandedExerciseId === exercise.id}
               onToggle={() => handleToggle(exercise.id!)}
+              onDelete={handleDeleteExercise}
             />
           ))}
         </div>

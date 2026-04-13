@@ -5,6 +5,10 @@ import { workoutService } from '../services/workoutService';
 import HistoryWorkoutCard from '../components/history/HistoryWorkoutCard';
 import WorkoutVolumeChart from '../components/history/WorkoutVolumeChart';
 
+const handleDeleteWorkout = async (id: number) => {
+  await workoutService.deleteWorkout(id);
+};
+
 const BATCH_SIZE = 20;
 
 export default function HistoryPage() {
@@ -75,6 +79,7 @@ export default function HistoryPage() {
               key={workout.id}
               workout={workout}
               onTap={handleTap}
+              onDelete={handleDeleteWorkout}
             />
           ))}
           {hasMore && (
