@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { workoutService } from '../services/workoutService';
+import { exportCSV, exportJSON } from '../services/exportService';
 import HistoryWorkoutCard from '../components/history/HistoryWorkoutCard';
 import WorkoutVolumeChart from '../components/history/WorkoutVolumeChart';
 
@@ -64,7 +65,25 @@ export default function HistoryPage() {
 
   return (
     <div className="pt-6 pb-4 flex flex-col gap-4">
-      <h1 className="text-2xl font-bold text-text-primary">History</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-text-primary">History</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={exportCSV}
+            className="text-xs border border-border text-text-secondary rounded-lg px-3 py-1.5
+                       active:bg-bg-card transition-colors"
+          >
+            Export CSV
+          </button>
+          <button
+            onClick={exportJSON}
+            className="text-xs border border-border text-text-secondary rounded-lg px-3 py-1.5
+                       active:bg-bg-card transition-colors"
+          >
+            Backup JSON
+          </button>
+        </div>
+      </div>
 
       <WorkoutVolumeChart data={chartData} />
 
