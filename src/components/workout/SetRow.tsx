@@ -52,19 +52,17 @@ export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) 
             ✓
           </button>
         </div>
-        <div className="flex items-center justify-around gap-2">
+        <div className="flex flex-col items-center gap-2">
           <Stepper
             value={editWeight}
-            onTapIncrement={5}
-            onLongPressIncrement={1}
+            increments={[10, 1, 0.5]}
             onChange={setEditWeight}
             min={0}
             label="lbs"
           />
           <Stepper
             value={editReps}
-            onTapIncrement={1}
-            onLongPressIncrement={1}
+            increments={[5, 1]}
             onChange={setEditReps}
             min={1}
             label="reps"

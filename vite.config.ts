@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'pwa-icon.svg'],
       manifest: {
         name: 'MOAR',
@@ -38,7 +38,23 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        runtimeCaching: [],
+        // Don't precache hero images — they're loaded on demand and too large for SW cache
+        globIgnores: ['**/heroes/**'],
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+        // Skip waiting so new versions activate immediately
+        skipWaiting: true,
+        clientsClaim: true,
+        runtimeCaching: [
+          {
+            // Cache hero images with a cache-first strategy
+            urlPattern: /\/heroes\/hero-\d+\.webp$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'hero-images',
+              expiration: { maxEntries: 20 },
+            },
+          },
+        ],
       },
     }),
   ],
