@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import { workoutService } from '../../services/workoutService';
 import { generateWorkoutSummary } from '../../services/comparisonService';
+import { setVolume } from '../../utils/formatters';
+import { settingsService } from '../../services/settingsService';
 import type { WorkoutSummary as WorkoutSummaryData } from '../../services/comparisonService';
 import WorkoutHeader from './WorkoutHeader';
 import ExerciseInput from './ExerciseInput';
@@ -18,6 +20,7 @@ interface ActiveWorkoutProps {
 export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkoutProps) {
   const [expandedExerciseId, setExpandedExerciseId] = useState<number | null>(null);
   const [summary, setSummary] = useState<WorkoutSummaryData | null>(null);
+  const [previousWorkoutVolume, setPreviousWorkoutVolume] = useState<number | null>(null);
   const navigate = useNavigate();
 
   const workout = useLiveQuery(
@@ -33,6 +36,26 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
         .sortBy('order'),
     [workoutId]
   );
+
+  // Live total volume for current workout
+  const currentWorkoutVolume = useLiveQuery(async () => {
+    const exs = await db.workoutExercises.where('workoutId').equals(workoutId).toArray();
+    if (exs.length === 0) return 0;
+    const sets = await db.workoutSets
+      .where('workoutExerciseId').anyOf(exs.map(e => e.id!)).toArray();
+    const bw = settingsService.getBodyWeight();
+    return sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, bw), 0);
+  }, [workoutId]);
+
+  // Fetch previous workout volume on mount
+  useEffect(() => {
+    if (!workout?.name) return;
+    workoutService.getRecentWorkouts(10).then(recents => {
+      // Find the most recent completed workout with the same name (excluding current)
+      const prev = recents.find(r => r.name === workout.name && r.id !== workoutId);
+      setPreviousWorkoutVolume(prev ? prev.totalVolume : null);
+    });
+  }, [workout?.name, workoutId]);
 
   const handleAddExercise = async (name: string) => {
     const newId = await workoutService.addExercise(workoutId, name);
@@ -71,7 +94,12 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <WorkoutHeader workout={workout} onFinish={handleFinish} />
+      <WorkoutHeader
+        workout={workout}
+        onFinish={handleFinish}
+        currentVolume={currentWorkoutVolume ?? 0}
+        previousVolume={previousWorkoutVolume}
+      />
 
       <ExerciseInput onAddExercise={handleAddExercise} />
 

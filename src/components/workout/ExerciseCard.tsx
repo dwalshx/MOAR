@@ -11,6 +11,7 @@ import { settingsService } from '../../services/settingsService';
 import SetRow from './SetRow';
 import SetEntryForm from './SetEntryForm';
 import Badge from './Badge';
+import ProgressBar from './ProgressBar';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -155,6 +156,18 @@ export default function ExerciseCard({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
+
+      {/* Progress toward last session + PR */}
+      {previousVolume != null && previousVolume > 0 && (
+        <div className="mt-3 px-1">
+          <ProgressBar
+            current={currentVolume}
+            target={previousVolume}
+            prTarget={pr ? pr.volume * (sets.length || 1) : null}
+            label="vs last time"
+          />
+        </div>
+      )}
 
       {/* Logged sets */}
       {sets.length > 0 && (
