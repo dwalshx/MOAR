@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 import type { WorkoutExercise } from '../../db/models';
-import type { BadgeType } from '../../services/comparisonService';
-import { getSetBadgesForExercise, getLastSessionSetsForExercise, suggestTarget } from '../../services/comparisonService';
+import type { BadgeType, ExercisePR } from '../../services/comparisonService';
+import { getSetBadgesForExercise, getLastSessionSetsForExercise, suggestTarget, getExercisePR } from '../../services/comparisonService';
 import { workoutService } from '../../services/workoutService';
 import { setVolume } from '../../utils/formatters';
 import { settingsService } from '../../services/settingsService';
@@ -32,6 +32,7 @@ export default function ExerciseCard({
   const [nudgeText, setNudgeText] = useState<string | null>(null);
   const [currentVolume, setCurrentVolume] = useState(0);
   const [previousVolume, setPreviousVolume] = useState<number | null>(null);
+  const [pr, setPr] = useState<ExercisePR | null>(null);
 
   const sets = useLiveQuery(
     () =>
@@ -55,12 +56,13 @@ export default function ExerciseCard({
     setCurrentVolume(vol);
   }, [sets, exercise.id, workoutId]);
 
-  // Compute nudge text and previous volume on mount
+  // Compute nudge text, previous volume, and PR on mount
   useEffect(() => {
     getLastSessionSetsForExercise(exercise.exerciseName, workoutId).then(result => {
       setNudgeText(suggestTarget(result.sets));
       setPreviousVolume(result.previousVolume > 0 ? result.previousVolume : null);
     });
+    getExercisePR(exercise.exerciseName).then(setPr);
   }, [exercise.exerciseName, workoutId]);
 
   // Scroll into view when expanded
@@ -169,12 +171,23 @@ export default function ExerciseCard({
         </div>
       )}
 
+      {/* Reference info: last time + PR */}
+      {(nudgeText || pr) && (
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-text-secondary px-1">
+          {nudgeText && <span>{nudgeText}</span>}
+          {pr && (
+            <span className="text-yellow-400">
+              PR: {pr.weight} x {pr.reps} ({pr.volume} lbs)
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Set entry form */}
       <div className="mt-3">
         <SetEntryForm
           exerciseName={exercise.exerciseName}
           workoutExerciseId={exercise.id!}
-          nudgeText={nudgeText}
           onLogSet={handleLogSet}
         />
       </div>

@@ -89,6 +89,42 @@ export function suggestTarget(
   return `Last time: ${first.weight} x ${first.reps}. Try ${first.weight} x ${first.reps + 1} or ${first.weight + 5} x ${first.reps}`;
 }
 
+export interface ExercisePR {
+  weight: number;
+  reps: number;
+  volume: number;
+  date: Date;
+}
+
+/**
+ * Get the all-time PR for an exercise (highest single-set volume: weight * reps).
+ * Only considers completed workouts.
+ */
+export async function getExercisePR(exerciseName: string): Promise<ExercisePR | null> {
+  const allExercises = await db.workoutExercises
+    .where('exerciseName').equals(exerciseName).toArray();
+
+  let best: ExercisePR | null = null;
+
+  for (const ex of allExercises) {
+    const workout = await db.workouts.get(ex.workoutId);
+    if (!workout || !workout.completedAt) continue;
+
+    const sets = await db.workoutSets
+      .where('workoutExerciseId').equals(ex.id!)
+      .toArray();
+
+    for (const s of sets) {
+      const vol = s.weight * s.reps;
+      if (vol > 0 && (!best || vol > best.volume)) {
+        best = { weight: s.weight, reps: s.reps, volume: vol, date: workout.completedAt };
+      }
+    }
+  }
+
+  return best;
+}
+
 // --- Async Functions (DB queries) ---
 
 /**
