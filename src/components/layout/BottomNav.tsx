@@ -2,6 +2,32 @@ import { NavLink } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
 
+function HomeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  );
+}
+
+function DumbbellIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 6.5h11M6 2v4M18 2v4M6 18v4M18 18v4M2 8h4v8H2zM18 8h4v8h-4zM6 10h12v4H6z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
 export default function BottomNav() {
   const activeWorkout = useLiveQuery(
     () => db.workouts.filter(w => !w.completedAt).first()
@@ -15,17 +41,17 @@ export default function BottomNav() {
   return (
     <nav className="flex justify-around items-center border-t border-border bg-bg-secondary pb-[env(safe-area-inset-bottom)]">
       <NavLink to="/" end className={linkClass}>
-        <span className="text-lg mb-0.5">{'\u{1F3E0}'}</span>
+        <HomeIcon className="mb-0.5" />
         Home
       </NavLink>
       {activeWorkout && (
         <NavLink to={`/workout/${activeWorkout.id}`} className={linkClass}>
-          <span className="text-lg mb-0.5">{'\u{1F3CB}'}</span>
+          <DumbbellIcon className="mb-0.5" />
           Workout
         </NavLink>
       )}
       <NavLink to="/history" className={linkClass}>
-        <span className="text-lg mb-0.5">{'\u{1F4CB}'}</span>
+        <ClockIcon className="mb-0.5" />
         History
       </NavLink>
     </nav>
