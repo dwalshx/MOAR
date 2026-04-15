@@ -250,12 +250,18 @@ export const workoutService = {
     const exerciseIds = exercises.map(e => e.id);
     const sets = await db.workoutSets
       .where('workoutExerciseId').anyOf(exerciseIds)
-      .filter(notDeleted)
-      .reverse().sortBy('timestamp');
+      .filter(notDeleted).toArray();
 
-    return sets.length > 0
-      ? { weight: sets[0].weight, reps: sets[0].reps }
-      : null;
+    if (sets.length === 0) return null;
+
+    // Sort by timestamp desc with setNumber as tiebreaker (same-ms timestamps)
+    sets.sort((a, b) => {
+      const tDiff = b.timestamp.getTime() - a.timestamp.getTime();
+      if (tDiff !== 0) return tDiff;
+      return b.setNumber - a.setNumber;
+    });
+
+    return { weight: sets[0].weight, reps: sets[0].reps };
   },
 
   async getExerciseNames(): Promise<string[]> {
