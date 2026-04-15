@@ -99,20 +99,20 @@ export default function LoginScreen({ onSkip }: { onSkip?: () => void }) {
               inputMode="numeric"
               pattern="[0-9]*"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="6-digit code"
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 10))}
+              placeholder="Enter code"
               required
               autoComplete="one-time-code"
               autoFocus
-              maxLength={6}
+              maxLength={10}
               className="bg-bg-card border border-border rounded-lg px-4 py-3
                          text-text-primary placeholder-text-secondary min-h-[44px]
                          outline-none focus:border-accent transition-colors
-                         text-2xl tracking-[0.5em] text-center font-bold"
+                         text-2xl tracking-[0.3em] text-center font-bold"
             />
             <button
               type="submit"
-              disabled={loading || code.length !== 6}
+              disabled={loading || code.length < 6}
               className="bg-accent text-white font-bold py-3 rounded-lg text-base
                          min-h-[44px] disabled:opacity-40 active:bg-accent-hover transition-colors"
             >
