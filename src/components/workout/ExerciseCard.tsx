@@ -15,10 +15,10 @@ import ProgressBar from './ProgressBar';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
-  workoutId: number;
+  workoutId: string;
   isExpanded: boolean;
   onToggle: () => void;
-  onDelete?: (exerciseId: number) => void;
+  onDelete?: (exerciseId: string) => void;
 }
 
 export default function ExerciseCard({
@@ -30,7 +30,7 @@ export default function ExerciseCard({
 }: ExerciseCardProps) {
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
-  const [badges, setBadges] = useState<Map<number, BadgeType>>(new Map());
+  const [badges, setBadges] = useState<Map<string, BadgeType>>(new Map());
   const [isComeback, setIsComeback] = useState(false);
   const [nudgeText, setNudgeText] = useState<string | null>(null);
   const [currentVolume, setCurrentVolume] = useState(0);
@@ -41,7 +41,7 @@ export default function ExerciseCard({
     () =>
       db.workoutSets
         .where('workoutExerciseId')
-        .equals(exercise.id!)
+        .equals(exercise.id)
         .sortBy('setNumber'),
     [exercise.id]
   );
@@ -49,7 +49,7 @@ export default function ExerciseCard({
   // Compute badges when sets change
   useEffect(() => {
     if (sets === undefined) return;
-    getSetBadgesForExercise(exercise.id!, workoutId).then(result => {
+    getSetBadgesForExercise(exercise.id, workoutId).then(result => {
       setBadges(result.badges);
       setIsComeback(result.isComeback);
     });
@@ -80,14 +80,14 @@ export default function ExerciseCard({
   const showVolumeUp = previousVolume != null && previousVolume > 0 && currentVolume > previousVolume;
 
   const handleLogSet = async (weight: number, reps: number) => {
-    await workoutService.logSet(exercise.id!, weight, reps);
+    await workoutService.logSet(exercise.id, weight, reps);
   };
 
-  const handleUpdateSet = async (setId: number, weight: number, reps: number) => {
+  const handleUpdateSet = async (setId: string, weight: number, reps: number) => {
     await workoutService.updateSet(setId, weight, reps);
   };
 
-  const handleDeleteSet = async (setId: number) => {
+  const handleDeleteSet = async (setId: string) => {
     await workoutService.deleteSet(setId);
   };
 
@@ -158,7 +158,7 @@ export default function ExerciseCard({
               onClick={(e) => {
                 e.stopPropagation();
                 if (confirm(`Remove ${exercise.exerciseName} and all its sets?`)) {
-                  onDelete(exercise.id!);
+                  onDelete(exercise.id);
                 }
               }}
               aria-label="Delete exercise"
@@ -222,7 +222,7 @@ export default function ExerciseCard({
       <div className="mt-3">
         <SetEntryForm
           exerciseName={exercise.exerciseName}
-          workoutExerciseId={exercise.id!}
+          workoutExerciseId={exercise.id}
           onLogSet={handleLogSet}
         />
       </div>

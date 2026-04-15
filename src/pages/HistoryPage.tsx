@@ -7,7 +7,7 @@ import HistoryWorkoutCard from '../components/history/HistoryWorkoutCard';
 import HistoryTable from '../components/history/HistoryTable';
 import WorkoutVolumeChart from '../components/history/WorkoutVolumeChart';
 
-const handleDeleteWorkout = async (id: number) => {
+const handleDeleteWorkout = async (id: string) => {
   await workoutService.deleteWorkout(id);
 };
 
@@ -59,7 +59,7 @@ export default function HistoryPage() {
     return () => observer.disconnect();
   }, [handleLoadMore]);
 
-  const handleTap = (id: number) => {
+  const handleTap = (id: string) => {
     navigate(`/history/${id}`);
   };
 

@@ -8,8 +8,8 @@ import Badge from './Badge';
 interface SetRowProps {
   set: WorkoutSet;
   badge?: BadgeType | null;
-  onUpdate: (setId: number, weight: number, reps: number) => void;
-  onDelete: (setId: number) => void;
+  onUpdate: (setId: string, weight: number, reps: number) => void;
+  onDelete: (setId: string) => void;
 }
 
 export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) {
@@ -28,12 +28,12 @@ export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) 
   };
 
   const handleSave = () => {
-    onUpdate(set.id!, editWeight, editReps);
+    onUpdate(set.id, editWeight, editReps);
     setIsEditing(false);
   };
 
   const handleDelete = () => {
-    onDelete(set.id!);
+    onDelete(set.id);
     reset();
   };
 

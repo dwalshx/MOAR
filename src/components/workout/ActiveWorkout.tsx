@@ -13,12 +13,12 @@ import ExerciseCard from './ExerciseCard';
 import WorkoutSummary from './WorkoutSummary';
 
 interface ActiveWorkoutProps {
-  workoutId: number;
+  workoutId: string;
   onSummaryShow?: () => void;
 }
 
 export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkoutProps) {
-  const [expandedExerciseId, setExpandedExerciseId] = useState<number | null>(null);
+  const [expandedExerciseId, setExpandedExerciseId] = useState<string | null>(null);
   const [summary, setSummary] = useState<WorkoutSummaryData | null>(null);
   const [previousWorkoutVolume, setPreviousWorkoutVolume] = useState<number | null>(null);
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
     const exs = await db.workoutExercises.where('workoutId').equals(workoutId).toArray();
     if (exs.length === 0) return 0;
     const sets = await db.workoutSets
-      .where('workoutExerciseId').anyOf(exs.map(e => e.id!)).toArray();
+      .where('workoutExerciseId').anyOf(exs.map(e => e.id)).toArray();
     const bw = settingsService.getBodyWeight();
     return sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, bw), 0);
   }, [workoutId]);
@@ -70,11 +70,11 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
     setSummary(summaryData);
   };
 
-  const handleToggle = (exerciseId: number) => {
+  const handleToggle = (exerciseId: string) => {
     setExpandedExerciseId((prev) => (prev === exerciseId ? null : exerciseId));
   };
 
-  const handleDeleteExercise = async (exerciseId: number) => {
+  const handleDeleteExercise = async (exerciseId: string) => {
     await workoutService.deleteExercise(exerciseId);
     if (expandedExerciseId === exerciseId) {
       setExpandedExerciseId(null);
@@ -122,7 +122,7 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
               exercise={exercise}
               workoutId={workoutId}
               isExpanded={expandedExerciseId === exercise.id}
-              onToggle={() => handleToggle(exercise.id!)}
+              onToggle={() => handleToggle(exercise.id)}
               onDelete={handleDeleteExercise}
             />
           ))}

@@ -1,6 +1,7 @@
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db, MoarDatabase } from '../database';
+import { uuid } from '../models';
 
 beforeEach(async () => {
   await db.delete();
@@ -13,9 +14,13 @@ describe('MoarDatabase', () => {
   });
 
   it('creates and reads a Workout', async () => {
-    const id = await db.workouts.add({
+    const id = uuid();
+    await db.workouts.add({
+      id,
       name: 'Push Day',
       startedAt: new Date('2026-04-08'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     const workout = await db.workouts.get(id);
     expect(workout).toBeDefined();
@@ -25,20 +30,30 @@ describe('MoarDatabase', () => {
   });
 
   it('creates a WorkoutExercise linked to a workout and queries by workoutId', async () => {
-    const workoutId = await db.workouts.add({
+    const workoutId = uuid();
+    await db.workouts.add({
+      id: workoutId,
       name: 'Leg Day',
       startedAt: new Date('2026-04-08'),
+      updatedAt: new Date(),
+      deleted: false,
     });
 
     await db.workoutExercises.add({
+      id: uuid(),
       workoutId,
       exerciseName: 'Squat',
       order: 1,
+      updatedAt: new Date(),
+      deleted: false,
     });
     await db.workoutExercises.add({
+      id: uuid(),
       workoutId,
       exerciseName: 'Leg Press',
       order: 2,
+      updatedAt: new Date(),
+      deleted: false,
     });
 
     const exercises = await db.workoutExercises
@@ -47,40 +62,55 @@ describe('MoarDatabase', () => {
       .toArray();
 
     expect(exercises).toHaveLength(2);
-    expect(exercises[0].exerciseName).toBe('Squat');
-    expect(exercises[1].exerciseName).toBe('Leg Press');
+    const byName = exercises.sort((a, b) => a.order - b.order);
+    expect(byName[0].exerciseName).toBe('Squat');
+    expect(byName[1].exerciseName).toBe('Leg Press');
   });
 
   it('creates a WorkoutSet linked to a WorkoutExercise and queries by workoutExerciseId', async () => {
-    const workoutId = await db.workouts.add({
+    const workoutId = uuid();
+    await db.workouts.add({
+      id: workoutId,
       name: 'Push Day',
       startedAt: new Date('2026-04-08'),
+      updatedAt: new Date(),
+      deleted: false,
     });
-    const exerciseId = await db.workoutExercises.add({
+    const exerciseId = uuid();
+    await db.workoutExercises.add({
+      id: exerciseId,
       workoutId,
       exerciseName: 'Bench Press',
       order: 1,
+      updatedAt: new Date(),
+      deleted: false,
     });
 
     await db.workoutSets.add({
+      id: uuid(),
       workoutExerciseId: exerciseId,
       setNumber: 1,
       weight: 135,
       reps: 10,
       timestamp: new Date('2026-04-08T10:00:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     await db.workoutSets.add({
+      id: uuid(),
       workoutExerciseId: exerciseId,
       setNumber: 2,
       weight: 155,
       reps: 8,
       timestamp: new Date('2026-04-08T10:03:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
 
     const sets = await db.workoutSets
       .where('workoutExerciseId')
       .equals(exerciseId)
-      .toArray();
+      .sortBy('setNumber');
 
     expect(sets).toHaveLength(2);
     expect(sets[0].weight).toBe(135);
@@ -90,10 +120,14 @@ describe('MoarDatabase', () => {
   });
 
   it('creates and reads a WorkoutTemplate', async () => {
-    const id = await db.workoutTemplates.add({
+    const id = uuid();
+    await db.workoutTemplates.add({
+      id,
       name: 'PPL Push',
       lastUsed: new Date('2026-04-07'),
       exercises: ['Bench Press', 'OHP', 'Tricep Pushdown'],
+      updatedAt: new Date(),
+      deleted: false,
     });
     const template = await db.workoutTemplates.get(id);
     expect(template).toBeDefined();

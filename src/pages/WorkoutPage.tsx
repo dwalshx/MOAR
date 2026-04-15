@@ -9,17 +9,15 @@ export default function WorkoutPage() {
   const navigate = useNavigate();
   const [showingSummary, setShowingSummary] = useState(false);
 
-  const parsedId = Number(id);
-
   useEffect(() => {
-    if (isNaN(parsedId)) {
+    if (!id) {
       navigate('/', { replace: true });
     }
-  }, [parsedId, navigate]);
+  }, [id, navigate]);
 
   const workout = useLiveQuery(
-    () => (isNaN(parsedId) ? undefined : db.workouts.get(parsedId)),
-    [parsedId]
+    () => (id ? db.workouts.get(id) : db.workouts.get('__none__')),
+    [id]
   );
 
   useEffect(() => {
@@ -28,7 +26,7 @@ export default function WorkoutPage() {
     }
   }, [workout, navigate, showingSummary]);
 
-  if (isNaN(parsedId)) {
+  if (!id) {
     return null;
   }
 
@@ -46,7 +44,7 @@ export default function WorkoutPage() {
 
   return (
     <ActiveWorkout
-      workoutId={parsedId}
+      workoutId={id}
       onSummaryShow={() => setShowingSummary(true)}
     />
   );

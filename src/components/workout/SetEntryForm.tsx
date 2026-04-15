@@ -4,7 +4,7 @@ import Stepper from './Stepper';
 
 interface SetEntryFormProps {
   exerciseName: string;
-  workoutExerciseId: number;
+  workoutExerciseId: string;
   onLogSet: (weight: number, reps: number) => void;
 }
 

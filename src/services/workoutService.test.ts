@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../db/database';
+import { uuid } from '../db/models';
 import { workoutService, normalizeExerciseName } from './workoutService';
 
 beforeEach(async () => {
@@ -24,7 +25,7 @@ describe('normalizeExerciseName', () => {
 describe('startWorkout', () => {
   it('creates a workout with auto-generated name in "Workout - Mon D" format', async () => {
     const id = await workoutService.startWorkout();
-    expect(id).toBeTypeOf('number');
+    expect(id).toBeTypeOf('string');
 
     const workout = await db.workouts.get(id);
     expect(workout).toBeDefined();
@@ -104,7 +105,7 @@ describe('updateSet', () => {
 });
 
 describe('deleteSet', () => {
-  it('removes a set from the database (LOG-05)', async () => {
+  it('soft-deletes a set (LOG-05)', async () => {
     const workoutId = await workoutService.startWorkout();
     const exId = await workoutService.addExercise(workoutId, 'squat');
     const setId = await workoutService.logSet(exId, 135, 10);
@@ -112,7 +113,8 @@ describe('deleteSet', () => {
     await workoutService.deleteSet(setId);
 
     const set = await db.workoutSets.get(setId);
-    expect(set).toBeUndefined();
+    expect(set).toBeDefined();
+    expect(set!.deleted).toBe(true);
   });
 });
 
@@ -210,18 +212,26 @@ describe('getWorkoutVolume', () => {
 describe('getRecentWorkouts', () => {
   it('returns completed workouts sorted by startedAt desc with totalVolume', async () => {
     // Create two completed workouts with distinct startedAt times
-    const w1 = await db.workouts.add({
+    const w1 = uuid();
+    await db.workouts.add({
+      id: w1,
       name: 'Workout 1',
       startedAt: new Date('2026-04-01T10:00:00'),
       completedAt: new Date('2026-04-01T11:00:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     const ex1 = await workoutService.addExercise(w1, 'squat');
     await workoutService.logSet(ex1, 100, 10); // 1000
 
-    const w2 = await db.workouts.add({
+    const w2 = uuid();
+    await db.workouts.add({
+      id: w2,
       name: 'Workout 2',
       startedAt: new Date('2026-04-02T10:00:00'),
       completedAt: new Date('2026-04-02T11:00:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     const ex2 = await workoutService.addExercise(w2, 'bench press');
     await workoutService.logSet(ex2, 50, 10); // 500
@@ -255,9 +265,12 @@ describe('startWorkoutFromTemplate', () => {
   it('creates a workout with template exercises pre-loaded', async () => {
     // Manually create a template
     await db.workoutTemplates.add({
+      id: uuid(),
       name: 'Push Day',
       lastUsed: new Date(),
       exercises: ['Bench Press', 'Overhead Press', 'Tricep Dips'],
+      updatedAt: new Date(),
+      deleted: false,
     });
 
     const wId = await workoutService.startWorkoutFromTemplate('Push Day');
@@ -345,18 +358,26 @@ describe('upsertTemplate (via finishWorkout)', () => {
 
 describe('getCompletedWorkouts', () => {
   it('returns completed workouts sorted by completedAt descending', async () => {
-    const w1 = await db.workouts.add({
+    const w1 = uuid();
+    await db.workouts.add({
+      id: w1,
       name: 'Workout 1',
       startedAt: new Date('2026-04-01T10:00:00'),
       completedAt: new Date('2026-04-01T11:00:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     const ex1 = await workoutService.addExercise(w1, 'squat');
     await workoutService.logSet(ex1, 100, 10);
 
-    const w2 = await db.workouts.add({
+    const w2 = uuid();
+    await db.workouts.add({
+      id: w2,
       name: 'Workout 2',
       startedAt: new Date('2026-04-02T10:00:00'),
       completedAt: new Date('2026-04-02T11:00:00'),
+      updatedAt: new Date(),
+      deleted: false,
     });
     const ex2 = await workoutService.addExercise(w2, 'bench press');
     await workoutService.logSet(ex2, 50, 10);
@@ -427,7 +448,7 @@ describe('getWorkoutDetail', () => {
   });
 
   it('returns null for non-existent workout', async () => {
-    const detail = await workoutService.getWorkoutDetail(9999);
+    const detail = await workoutService.getWorkoutDetail(uuid());
     expect(detail).toBeNull();
   });
 

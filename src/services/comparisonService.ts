@@ -15,7 +15,7 @@ export interface ExerciseComparison {
   currentVolume: number;
   previousVolume: number | null;
   direction: 'up' | 'down' | 'same' | 'new';
-  setBadges: Map<number, BadgeType>; // setId -> badge type
+  setBadges: Map<string, BadgeType>; // setId -> badge type
   isComeback: boolean;
 }
 
@@ -102,20 +102,23 @@ export interface ExercisePR {
  */
 export async function getExercisePR(exerciseName: string): Promise<ExercisePR | null> {
   const allExercises = await db.workoutExercises
-    .where('exerciseName').equals(exerciseName).toArray();
+    .where('exerciseName').equals(exerciseName)
+    .filter(e => !e.deleted)
+    .toArray();
 
   let best: ExercisePR | null = null;
 
   for (const ex of allExercises) {
     const workout = await db.workouts.get(ex.workoutId);
-    if (!workout || !workout.completedAt) continue;
+    if (!workout || !workout.completedAt || workout.deleted) continue;
 
     const sets = await db.workoutSets
-      .where('workoutExerciseId').equals(ex.id!)
+      .where('workoutExerciseId').equals(ex.id)
+      .filter(s => !s.deleted)
       .toArray();
 
     for (const s of sets) {
-      const vol = s.weight * s.reps;
+      const vol = setVolume(s.weight, s.reps, settingsService.getBodyWeight());
       if (vol > 0 && (!best || vol > best.volume)) {
         best = { weight: s.weight, reps: s.reps, volume: vol, date: workout.completedAt };
       }
@@ -132,26 +135,27 @@ export async function getExercisePR(exerciseName: string): Promise<ExercisePR | 
  * Also returns isComeback flag.
  */
 export async function getSetBadgesForExercise(
-  workoutExerciseId: number,
-  currentWorkoutId: number,
-): Promise<{ badges: Map<number, BadgeType>; isComeback: boolean }> {
+  workoutExerciseId: string,
+  currentWorkoutId: string,
+): Promise<{ badges: Map<string, BadgeType>; isComeback: boolean }> {
   // 1. Get exercise record to find exerciseName
   const exerciseRecord = await db.workoutExercises.get(workoutExerciseId);
   if (!exerciseRecord) return { badges: new Map(), isComeback: false };
 
   const exerciseName = exerciseRecord.exerciseName;
 
-  // 2. Find all workoutExercise records for this exerciseName
+  // 2. Find all workoutExercise records for this exerciseName (not deleted)
   const allExerciseRecords = await db.workoutExercises
     .where('exerciseName')
     .equals(exerciseName)
+    .filter(e => !e.deleted)
     .toArray();
 
-  // 3. Get parent workouts, filter to completed, exclude current
+  // 3. Get parent workouts, filter to completed, exclude current and deleted
   const workoutIds = [...new Set(allExerciseRecords.map(e => e.workoutId))];
   const workouts = await Promise.all(workoutIds.map(id => db.workouts.get(id)));
   const completedWorkouts = workouts
-    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== currentWorkoutId)
+    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== currentWorkoutId && !w.deleted)
     .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
 
   const hasCompletedHistory = completedWorkouts.length > 0;
@@ -165,10 +169,11 @@ export async function getSetBadgesForExercise(
       e => e.workoutId === lastWorkout.id,
     );
     if (lastExerciseRecords.length > 0) {
-      const lastExIds = lastExerciseRecords.map(e => e.id!);
+      const lastExIds = lastExerciseRecords.map(e => e.id);
       const lastSets = await db.workoutSets
         .where('workoutExerciseId')
         .anyOf(lastExIds)
+        .filter(s => !s.deleted)
         .toArray();
       lastSessionSets = lastSets.map(s => ({
         setNumber: s.setNumber,
@@ -184,13 +189,14 @@ export async function getSetBadgesForExercise(
       const w = completedWorkouts.find(cw => cw.id === e.workoutId);
       return w != null;
     })
-    .map(e => e.id!);
+    .map(e => e.id);
 
   let allHistoricalSets: { weight: number; reps: number }[] = [];
   if (completedExerciseIds.length > 0) {
     const historicalSetsRaw = await db.workoutSets
       .where('workoutExerciseId')
       .anyOf(completedExerciseIds)
+      .filter(s => !s.deleted)
       .toArray();
     allHistoricalSets = historicalSetsRaw.map(s => ({
       weight: s.weight,
@@ -202,9 +208,10 @@ export async function getSetBadgesForExercise(
   const currentSets = await db.workoutSets
     .where('workoutExerciseId')
     .equals(workoutExerciseId)
+    .filter(s => !s.deleted)
     .sortBy('setNumber');
 
-  const badges = new Map<number, BadgeType>();
+  const badges = new Map<string, BadgeType>();
   for (const set of currentSets) {
     const badge = classifySet(
       set.weight,
@@ -214,7 +221,7 @@ export async function getSetBadgesForExercise(
       allHistoricalSets,
       hasCompletedHistory,
     );
-    if (badge && set.id != null) {
+    if (badge) {
       badges.set(set.id, badge);
     }
   }
@@ -222,7 +229,7 @@ export async function getSetBadgesForExercise(
   // 7. Check isComeback: exercise not in last completed workout (overall) but in an older one
   let isComeback = false;
   // Get ALL completed workouts (not just those with this exercise) to find the true "last workout"
-  const allWorkoutsForComeback = await db.workouts.toArray();
+  const allWorkoutsForComeback = await db.workouts.filter(w => !w.deleted).toArray();
   const allCompletedSorted = allWorkoutsForComeback
     .filter(w => w.completedAt != null && w.id !== currentWorkoutId)
     .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
@@ -232,7 +239,8 @@ export async function getSetBadgesForExercise(
     // Check if this exercise was in the last completed workout
     const lastWorkoutExercises = await db.workoutExercises
       .where('workoutId')
-      .equals(lastOverallWorkout.id!)
+      .equals(lastOverallWorkout.id)
+      .filter(e => !e.deleted)
       .toArray();
     const lastWorkoutExerciseNames = lastWorkoutExercises.map(e => e.exerciseName);
 
@@ -251,17 +259,18 @@ export async function getSetBadgesForExercise(
  */
 export async function getLastSessionSetsForExercise(
   exerciseName: string,
-  excludeWorkoutId: number,
+  excludeWorkoutId: string,
 ): Promise<{ sets: { setNumber: number; weight: number; reps: number }[]; previousVolume: number }> {
   const allExerciseRecords = await db.workoutExercises
     .where('exerciseName')
     .equals(exerciseName)
+    .filter(e => !e.deleted)
     .toArray();
 
   const workoutIds = [...new Set(allExerciseRecords.map(e => e.workoutId))];
   const workouts = await Promise.all(workoutIds.map(id => db.workouts.get(id)));
   const completedWorkouts = workouts
-    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== excludeWorkoutId)
+    .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== excludeWorkoutId && !w.deleted)
     .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
 
   if (completedWorkouts.length === 0) {
@@ -274,10 +283,11 @@ export async function getLastSessionSetsForExercise(
     return { sets: [], previousVolume: 0 };
   }
 
-  const lastExIds = lastExerciseRecords.map(e => e.id!);
+  const lastExIds = lastExerciseRecords.map(e => e.id);
   const lastSets = await db.workoutSets
     .where('workoutExerciseId')
     .anyOf(lastExIds)
+    .filter(s => !s.deleted)
     .toArray();
 
   const sets = lastSets.map(s => ({
@@ -296,7 +306,7 @@ export async function getLastSessionSetsForExercise(
  * Called BEFORE finishWorkout (current workout has no completedAt).
  */
 export async function generateWorkoutSummary(
-  workoutId: number,
+  workoutId: string,
 ): Promise<WorkoutSummary> {
   const workout = await db.workouts.get(workoutId);
   if (!workout) {
@@ -315,10 +325,11 @@ export async function generateWorkoutSummary(
   const currentExercises = await db.workoutExercises
     .where('workoutId')
     .equals(workoutId)
+    .filter(e => !e.deleted)
     .sortBy('order');
 
   // Find previous completed workout with same name (D-21)
-  const allWorkouts = await db.workouts.toArray();
+  const allWorkouts = await db.workouts.filter(w => !w.deleted).toArray();
   const previousSameNameWorkouts = allWorkouts
     .filter(w => w.completedAt != null && w.name === workout.name && w.id !== workoutId)
     .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
@@ -333,7 +344,8 @@ export async function generateWorkoutSummary(
   for (const ex of currentExercises) {
     const currentSets = await db.workoutSets
       .where('workoutExerciseId')
-      .equals(ex.id!)
+      .equals(ex.id)
+      .filter(s => !s.deleted)
       .toArray();
     const currentVolume = currentSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
     totalVolume += currentVolume;
@@ -342,13 +354,14 @@ export async function generateWorkoutSummary(
     const allExRecords = await db.workoutExercises
       .where('exerciseName')
       .equals(ex.exerciseName)
+      .filter(e => !e.deleted)
       .toArray();
 
-    // Filter to completed workouts, exclude current
+    // Filter to completed workouts, exclude current and deleted
     const exWorkoutIds = [...new Set(allExRecords.map(e => e.workoutId))];
     const exWorkouts = await Promise.all(exWorkoutIds.map(id => db.workouts.get(id)));
     const completedExWorkouts = exWorkouts
-      .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== workoutId)
+      .filter((w): w is NonNullable<typeof w> => w != null && w.completedAt != null && w.id !== workoutId && !w.deleted)
       .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
 
     let previousVolume: number | null = null;
@@ -358,10 +371,11 @@ export async function generateWorkoutSummary(
       const lastExWorkout = completedExWorkouts[0];
       const lastExRecords = allExRecords.filter(e => e.workoutId === lastExWorkout.id);
       if (lastExRecords.length > 0) {
-        const lastExIds = lastExRecords.map(e => e.id!);
+        const lastExIds = lastExRecords.map(e => e.id);
         const prevSets = await db.workoutSets
           .where('workoutExerciseId')
           .anyOf(lastExIds)
+          .filter(s => !s.deleted)
           .toArray();
         previousVolume = prevSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
 
@@ -372,7 +386,7 @@ export async function generateWorkoutSummary(
     }
 
     // Get badges for this exercise
-    const badgeResult = await getSetBadgesForExercise(ex.id!, workoutId);
+    const badgeResult = await getSetBadgesForExercise(ex.id, workoutId);
 
     // Track PRs for bestAchievement
     for (const [setId, badge] of badgeResult.badges) {
@@ -401,14 +415,16 @@ export async function generateWorkoutSummary(
   if (previousWorkout) {
     const prevExercises = await db.workoutExercises
       .where('workoutId')
-      .equals(previousWorkout.id!)
+      .equals(previousWorkout.id)
+      .filter(e => !e.deleted)
       .toArray();
-    const prevExIds = prevExercises.map(e => e.id!);
+    const prevExIds = prevExercises.map(e => e.id);
     let prevTotal = 0;
     if (prevExIds.length > 0) {
       const prevSets = await db.workoutSets
         .where('workoutExerciseId')
         .anyOf(prevExIds)
+        .filter(s => !s.deleted)
         .toArray();
       prevTotal = prevSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
     }

@@ -9,17 +9,15 @@ import {
 } from './comparisonService';
 
 beforeEach(async () => {
-  await db.workoutSets.clear();
-  await db.workoutExercises.clear();
-  await db.workouts.clear();
-  await db.workoutTemplates.clear();
+  await db.delete();
+  await db.open();
 });
 
 // Helper: create a completed workout with exercises and sets
 async function createCompletedWorkout(
   name: string,
   exercises: { name: string; sets: { weight: number; reps: number }[] }[],
-): Promise<number> {
+): Promise<string> {
   const wId = await workoutService.startWorkout();
   await workoutService.updateWorkoutName(wId, name);
   for (const ex of exercises) {
@@ -36,7 +34,7 @@ async function createCompletedWorkout(
 async function createActiveWorkout(
   name: string,
   exercises: { name: string; sets: { weight: number; reps: number }[] }[],
-): Promise<number> {
+): Promise<string> {
   const wId = await workoutService.startWorkout();
   await workoutService.updateWorkoutName(wId, name);
   for (const ex of exercises) {
@@ -151,18 +149,17 @@ describe('getSetBadgesForExercise', () => {
     ]);
 
     const exercises = await db.workoutExercises.where('workoutId').equals(activeWId).toArray();
-    const result = await getSetBadgesForExercise(exercises[0].id!, activeWId);
+    const result = await getSetBadgesForExercise(exercises[0].id, activeWId);
 
     // Should have badges for both sets
     expect(result.badges.size).toBe(2);
 
-    // Get sets to check badge mapping
-    const sets = await db.workoutSets.where('workoutExerciseId').equals(exercises[0].id!).toArray();
-    // Set 1: 135x9 -- either PR (if 135x9 never done) or +1 (beats 135x8)
-    // Since only 135x8 and 135x7 in history, 135x9 is a PR
-    expect(result.badges.get(sets[0].id!)).toBe('PR');
+    // Get sets sorted by setNumber (UUID ordering isn't natural like auto-increment)
+    const sets = await db.workoutSets.where('workoutExerciseId').equals(exercises[0].id).sortBy('setNumber');
+    // Set 1: 135x9 -- never done before in history, so PR
+    expect(result.badges.get(sets[0].id)).toBe('PR');
     // Set 2: 135x7 -- matched (same as last session set 2)
-    expect(result.badges.get(sets[1].id!)).toBe('Matched');
+    expect(result.badges.get(sets[1].id)).toBe('Matched');
     expect(result.isComeback).toBe(false);
   });
 

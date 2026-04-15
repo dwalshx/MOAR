@@ -8,7 +8,7 @@ export default function WorkoutDetailPage() {
   const navigate = useNavigate();
 
   const detail = useLiveQuery(
-    () => workoutService.getWorkoutDetail(Number(id)),
+    () => id ? workoutService.getWorkoutDetail(id) : Promise.resolve(null),
     [id]
   );
 

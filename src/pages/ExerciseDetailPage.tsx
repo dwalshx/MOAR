@@ -11,7 +11,7 @@ export default function ExerciseDetailPage() {
   const { name } = useParams();
   const navigate = useNavigate();
   const exerciseName = decodeURIComponent(name || '');
-  const [expandedSessionId, setExpandedSessionId] = useState<number | null>(null);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
 
   const sessions = useLiveQuery(
     () => workoutService.getExerciseHistory(exerciseName, 20),
@@ -36,7 +36,7 @@ export default function ExerciseDetailPage() {
       fullDate: formatAbsoluteDate(s.date),
     }));
 
-  const handleToggleSession = (workoutId: number) => {
+  const handleToggleSession = (workoutId: string) => {
     setExpandedSessionId((prev) => (prev === workoutId ? null : workoutId));
   };
 

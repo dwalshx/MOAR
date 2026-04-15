@@ -3,8 +3,8 @@ import { formatRelativeDate, formatVolume } from '../../utils/formatters';
 
 interface HistoryWorkoutCardProps {
   workout: RecentWorkout;
-  onTap: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onTap: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 export default function HistoryWorkoutCard({ workout, onTap, onDelete }: HistoryWorkoutCardProps) {
