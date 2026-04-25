@@ -100,6 +100,27 @@ export interface ExercisePR {
  * Get the all-time PR for an exercise (highest single-set volume: weight * reps).
  * Only considers completed workouts.
  */
+/**
+ * Get all-time PRs for every exercise the user has logged.
+ * Returns one PR per exercise name (the heaviest single set by volume).
+ * Sorted by date desc (most recent PRs first).
+ */
+export async function getAllPRs(): Promise<Array<{ exerciseName: string } & ExercisePR>> {
+  // Get all unique exercise names from completed workouts
+  const allEx = await db.workoutExercises.filter(e => !e.deleted).toArray();
+  const names = [...new Set(allEx.map(e => e.exerciseName))];
+
+  const prs: Array<{ exerciseName: string } & ExercisePR> = [];
+  for (const name of names) {
+    const pr = await getExercisePR(name);
+    if (pr) prs.push({ exerciseName: name, ...pr });
+  }
+
+  // Most recent PRs first
+  prs.sort((a, b) => b.date.getTime() - a.date.getTime());
+  return prs;
+}
+
 export async function getExercisePR(exerciseName: string): Promise<ExercisePR | null> {
   const allExercises = await db.workoutExercises
     .where('exerciseName').equals(exerciseName)
