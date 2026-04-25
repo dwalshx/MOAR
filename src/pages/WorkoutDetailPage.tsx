@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { workoutService } from '../services/workoutService';
@@ -40,7 +41,7 @@ export default function WorkoutDetailPage() {
       <div>
         <h1 className="text-2xl font-bold text-text-primary">{detail.name}</h1>
         <div className="flex items-center gap-2 text-text-secondary text-sm mt-1">
-          <span>{formatAbsoluteDate(detail.completedAt)}</span>
+          <DetailDateEditor workoutId={detail.id} date={detail.completedAt} />
           <span>&middot;</span>
           <span>{formatDuration(detail.duration)}</span>
         </div>
@@ -100,5 +101,41 @@ export default function WorkoutDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function DetailDateEditor({ workoutId, date }: { workoutId: string; date: Date }) {
+  const [editing, setEditing] = useState(false);
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="active:text-accent transition-colors"
+      >
+        {formatAbsoluteDate(date)}
+      </button>
+    );
+  }
+
+  const isoDate = date.toISOString().slice(0, 10);
+  return (
+    <input
+      type="date"
+      defaultValue={isoDate}
+      autoFocus
+      onBlur={() => setEditing(false)}
+      onChange={async (e) => {
+        const v = e.target.value;
+        if (v) {
+          const [y, m, d] = v.split('-').map(Number);
+          const newDate = new Date(y, m - 1, d);
+          await workoutService.updateWorkoutDate(workoutId, newDate);
+        }
+        setEditing(false);
+      }}
+      className="bg-bg-card border border-accent rounded px-2 py-1 text-sm text-text-primary outline-none"
+    />
   );
 }

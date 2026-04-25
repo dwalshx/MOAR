@@ -4,6 +4,7 @@ import { db } from '../db/database';
 import { workoutService } from '../services/workoutService';
 import HeroSection from '../components/home/HeroSection';
 import RecentWorkouts from '../components/home/RecentWorkouts';
+import WorkoutHeatmap from '../components/home/WorkoutHeatmap';
 import InstallPromptBanner from '../components/pwa/InstallPromptBanner';
 
 export default function HomePage() {
@@ -51,6 +52,8 @@ export default function HomePage() {
       >
         {activeWorkout ? 'Start New Workout' : 'Start Workout'}
       </button>
+
+      <WorkoutHeatmap />
 
       <RecentWorkouts />
 

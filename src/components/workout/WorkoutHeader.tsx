@@ -61,7 +61,13 @@ export default function WorkoutHeader({
             className="text-xl font-bold text-text-primary bg-transparent border-b border-transparent focus:border-accent outline-none truncate"
             placeholder="Workout name"
           />
-          <WorkoutTimers workoutId={workout.id} workoutStartedAt={workout.startedAt} />
+          <div className="flex items-center gap-3 flex-wrap">
+            <DateEditor
+              workoutId={workout.id}
+              date={workout.startedAt}
+            />
+            <WorkoutTimers workoutId={workout.id} workoutStartedAt={workout.startedAt} />
+          </div>
         </div>
         <button
           type="button"
@@ -104,5 +110,51 @@ export default function WorkoutHeader({
         />
       </div>
     </div>
+  );
+}
+
+function DateEditor({ workoutId, date }: { workoutId: string; date: Date }) {
+  const [editing, setEditing] = useState(false);
+  const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  // ISO date for input[type=date]
+  const isoDate = date.toISOString().slice(0, 10);
+
+  if (!editing) {
+    return (
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="text-xs text-text-secondary active:text-accent transition-colors flex items-center gap-1"
+      >
+        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        {dateStr}
+      </button>
+    );
+  }
+
+  return (
+    <input
+      type="date"
+      defaultValue={isoDate}
+      autoFocus
+      onBlur={() => setEditing(false)}
+      onChange={async (e) => {
+        const v = e.target.value;
+        if (v) {
+          // Parse as local date (YYYY-MM-DD), not UTC, to avoid timezone shift
+          const [y, m, d] = v.split('-').map(Number);
+          const newDate = new Date(y, m - 1, d);
+          await workoutService.updateWorkoutDate(workoutId, newDate);
+        }
+        setEditing(false);
+      }}
+      className="bg-bg-card border border-accent rounded px-2 py-1 text-xs text-text-primary outline-none"
+    />
   );
 }

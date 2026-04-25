@@ -151,6 +151,32 @@ export const workoutService = {
     await db.workouts.update(workoutId, { notes, updatedAt: new Date() });
   },
 
+  async updateWorkoutDate(workoutId: string, newDate: Date): Promise<void> {
+    const workout = await db.workouts.get(workoutId);
+    if (!workout) return;
+    const startedAt = new Date(newDate);
+    startedAt.setHours(workout.startedAt.getHours(), workout.startedAt.getMinutes(), 0, 0);
+
+    const patch: Partial<typeof workout> = { startedAt, updatedAt: new Date() };
+    if (workout.completedAt) {
+      const completedAt = new Date(newDate);
+      completedAt.setHours(workout.completedAt.getHours(), workout.completedAt.getMinutes(), 0, 0);
+      patch.completedAt = completedAt;
+    }
+    await db.workouts.update(workoutId, patch);
+
+    // Also shift all set timestamps to the new date (preserve their time-of-day)
+    const exercises = await db.workoutExercises.where('workoutId').equals(workoutId).toArray();
+    for (const ex of exercises) {
+      const sets = await db.workoutSets.where('workoutExerciseId').equals(ex.id).toArray();
+      for (const s of sets) {
+        const newTimestamp = new Date(newDate);
+        newTimestamp.setHours(s.timestamp.getHours(), s.timestamp.getMinutes(), s.timestamp.getSeconds(), 0);
+        await db.workoutSets.update(s.id, { timestamp: newTimestamp, updatedAt: new Date() });
+      }
+    }
+  },
+
   async updateExerciseNotes(workoutExerciseId: string, notes: string): Promise<void> {
     await db.workoutExercises.update(workoutExerciseId, { notes, updatedAt: new Date() });
   },
