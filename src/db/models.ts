@@ -24,6 +24,7 @@ export interface WorkoutExercise {
   workoutId: string;
   exerciseName: string;
   order: number;
+  notes?: string;
   updatedAt: Date;
   deleted: boolean;
 }

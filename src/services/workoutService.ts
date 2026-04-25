@@ -19,6 +19,7 @@ export interface WorkoutDetail {
   completedAt: Date;
   totalVolume: number;
   duration: number | null; // minutes
+  notes?: string;
   exercises: WorkoutExerciseDetail[];
 }
 
@@ -26,6 +27,7 @@ export interface WorkoutExerciseDetail {
   exerciseName: string;
   sets: { setNumber: number; weight: number; reps: number }[];
   volume: number;
+  notes?: string;
 }
 
 export interface ExerciseSession {
@@ -143,6 +145,14 @@ export const workoutService = {
 
   async updateWorkoutName(workoutId: string, name: string): Promise<void> {
     await db.workouts.update(workoutId, { name, updatedAt: new Date() });
+  },
+
+  async updateWorkoutNotes(workoutId: string, notes: string): Promise<void> {
+    await db.workouts.update(workoutId, { notes, updatedAt: new Date() });
+  },
+
+  async updateExerciseNotes(workoutExerciseId: string, notes: string): Promise<void> {
+    await db.workoutExercises.update(workoutExerciseId, { notes, updatedAt: new Date() });
   },
 
   async getWorkoutVolume(workoutId: string): Promise<number> {
@@ -328,6 +338,7 @@ export const workoutService = {
         exerciseName: ex.exerciseName,
         sets: sets.map(s => ({ setNumber: s.setNumber, weight: s.weight, reps: s.reps })),
         volume: exVolume,
+        notes: ex.notes,
       });
     }
 
@@ -347,6 +358,7 @@ export const workoutService = {
       completedAt: workout.completedAt,
       totalVolume,
       duration,
+      notes: workout.notes,
       exercises: exerciseDetails,
     };
   },

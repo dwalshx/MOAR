@@ -5,6 +5,7 @@ import { formatVolume } from '../../utils/formatters';
 import ProgressBar from './ProgressBar';
 import WorkoutTimers from './WorkoutTimers';
 import AnimatedNumber from './AnimatedNumber';
+import NotesEditor from './NotesEditor';
 
 interface WorkoutHeaderProps {
   workout: Workout;
@@ -93,6 +94,15 @@ export default function WorkoutHeader({
           />
         </div>
       )}
+
+      {/* Workout-level notes */}
+      <div className="mt-2">
+        <NotesEditor
+          value={workout.notes}
+          onChange={(notes) => workoutService.updateWorkoutNotes(workout.id, notes)}
+          placeholder="Note for this workout..."
+        />
+      </div>
     </div>
   );
 }

@@ -13,6 +13,7 @@ import SetEntryForm from './SetEntryForm';
 import Badge from './Badge';
 import ProgressBar from './ProgressBar';
 import AnimatedNumber from './AnimatedNumber';
+import NotesEditor from './NotesEditor';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -236,6 +237,15 @@ export default function ExerciseCard({
           exerciseName={exercise.exerciseName}
           workoutExerciseId={exercise.id}
           onLogSet={handleLogSet}
+        />
+      </div>
+
+      {/* Per-exercise notes */}
+      <div className="mt-3">
+        <NotesEditor
+          value={exercise.notes}
+          onChange={(notes) => workoutService.updateExerciseNotes(exercise.id, notes)}
+          placeholder="Note for this exercise..."
         />
       </div>
     </div>

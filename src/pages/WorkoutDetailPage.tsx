@@ -44,6 +44,11 @@ export default function WorkoutDetailPage() {
           <span>&middot;</span>
           <span>{formatDuration(detail.duration)}</span>
         </div>
+        {detail.notes && (
+          <p className="text-text-primary text-sm bg-bg-card rounded-lg p-3 mt-3 italic">
+            {detail.notes}
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-4">
@@ -78,6 +83,12 @@ export default function WorkoutDetailPage() {
             <div className="text-text-secondary text-sm mt-2">
               Volume: {formatVolume(exercise.volume)}
             </div>
+
+            {exercise.notes && (
+              <p className="text-text-primary text-xs bg-bg-secondary rounded-lg px-3 py-2 mt-2 italic">
+                {exercise.notes}
+              </p>
+            )}
           </div>
         ))}
       </div>
