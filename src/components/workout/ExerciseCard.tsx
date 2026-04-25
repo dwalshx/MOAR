@@ -12,6 +12,7 @@ import SetRow from './SetRow';
 import SetEntryForm from './SetEntryForm';
 import Badge from './Badge';
 import ProgressBar from './ProgressBar';
+import AnimatedNumber from './AnimatedNumber';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -179,9 +180,20 @@ export default function ExerciseCard({
         </div>
       </div>
 
+      {/* Per-exercise live volume tally */}
+      {sets.length > 0 && (
+        <div className="mt-2 flex items-center justify-between text-xs">
+          <span className="text-text-secondary uppercase tracking-wide">Volume</span>
+          <span className="text-text-primary font-bold tabular-nums">
+            <AnimatedNumber value={currentVolume} />
+            <span className="text-text-secondary font-medium ml-1">lbs</span>
+          </span>
+        </div>
+      )}
+
       {/* Progress toward last session + PR */}
       {previousVolume != null && previousVolume > 0 && (
-        <div className="mt-3 px-1">
+        <div className="mt-2 px-1">
           <ProgressBar
             current={currentVolume}
             target={previousVolume}

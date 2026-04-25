@@ -3,6 +3,8 @@ import type { Workout } from '../../db/models';
 import { workoutService } from '../../services/workoutService';
 import { formatVolume } from '../../utils/formatters';
 import ProgressBar from './ProgressBar';
+import WorkoutTimers from './WorkoutTimers';
+import AnimatedNumber from './AnimatedNumber';
 
 interface WorkoutHeaderProps {
   workout: Workout;
@@ -45,16 +47,21 @@ export default function WorkoutHeader({
     [workout.id]
   );
 
+  const hasComparison = previousVolume != null && previousVolume > 0;
+
   return (
     <div>
       <div className="flex items-center justify-between py-2">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => handleNameChange(e.target.value)}
-          className="text-xl font-bold text-text-primary bg-transparent border-b border-transparent focus:border-accent outline-none truncate mr-4 min-w-0 flex-1"
-          placeholder="Workout name"
-        />
+        <div className="flex flex-col min-w-0 flex-1 mr-3">
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => handleNameChange(e.target.value)}
+            className="text-xl font-bold text-text-primary bg-transparent border-b border-transparent focus:border-accent outline-none truncate"
+            placeholder="Workout name"
+          />
+          <WorkoutTimers workoutId={workout.id} workoutStartedAt={workout.startedAt} />
+        </div>
         <button
           type="button"
           className="bg-success text-white px-4 py-2 rounded-lg font-semibold
@@ -65,13 +72,24 @@ export default function WorkoutHeader({
         </button>
       </div>
 
-      {/* Workout-level progress bar */}
-      {previousVolume != null && previousVolume > 0 && (
-        <div className="mt-1 mb-1">
+      {/* Live volume tally — always visible, shows the running total */}
+      <div className="bg-bg-card/60 rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
+        <span className="text-text-secondary text-xs uppercase tracking-wide">
+          {hasComparison ? 'Volume' : 'Volume moved'}
+        </span>
+        <span className="text-2xl font-black text-accent tabular-nums">
+          <AnimatedNumber value={currentVolume} />
+          <span className="text-sm text-text-secondary font-medium ml-1">lbs</span>
+        </span>
+      </div>
+
+      {/* Workout-level progress bar — only shown when there's a previous to beat */}
+      {hasComparison && (
+        <div className="mt-2">
           <ProgressBar
             current={currentVolume}
             target={previousVolume}
-            label={`Workout volume: ${formatVolume(currentVolume)} / ${formatVolume(previousVolume)}`}
+            label={`vs last time: ${formatVolume(previousVolume)}`}
           />
         </div>
       )}
