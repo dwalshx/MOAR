@@ -7,6 +7,7 @@ import { generateWorkoutSummary } from '../../services/comparisonService';
 import { setVolume } from '../../utils/formatters';
 import { settingsService } from '../../services/settingsService';
 import type { WorkoutSummary as WorkoutSummaryData } from '../../services/comparisonService';
+import { useWakeLock } from '../../hooks/useWakeLock';
 import WorkoutHeader from './WorkoutHeader';
 import ExerciseInput from './ExerciseInput';
 import ExerciseCard from './ExerciseCard';
@@ -22,6 +23,9 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
   const [summary, setSummary] = useState<WorkoutSummaryData | null>(null);
   const [previousWorkoutVolume, setPreviousWorkoutVolume] = useState<number | null>(null);
   const navigate = useNavigate();
+
+  // Keep screen on during active workout (released after summary shown)
+  useWakeLock(!summary);
 
   const workout = useLiveQuery(
     () => db.workouts.get(workoutId),
