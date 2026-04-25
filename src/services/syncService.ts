@@ -45,6 +45,7 @@ interface RemoteWorkoutExercise {
   exercise_name: string;
   order: number;
   notes: string | null;
+  bar_type: string | null;
   updated_at: string;
   deleted: boolean;
 }
@@ -165,6 +166,7 @@ async function pull(userId: string): Promise<void> {
             exerciseName: r.exercise_name,
             order: r.order,
             notes: r.notes ?? undefined,
+            barType: r.bar_type ?? undefined,
             updatedAt: new Date(r.updated_at),
             deleted: r.deleted,
           });
@@ -284,6 +286,7 @@ async function push(userId: string): Promise<void> {
         exercise_name: r.exerciseName,
         order: r.order,
         notes: r.notes ?? null,
+        bar_type: r.barType ?? null,
         updated_at: r.updatedAt.toISOString(),
         deleted: r.deleted,
       }));

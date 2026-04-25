@@ -19,12 +19,25 @@ export interface Workout {
   deleted: boolean;
 }
 
+/**
+ * Bar/equipment type for an exercise. Determines default weight,
+ * stepper behavior, and volume calculation.
+ *   - 'bar:<id>' — barbell with id (Olympic, trap, etc., from settingsService.bars)
+ *   - 'bodyweight' — no external weight; volume uses user's body weight
+ *   - 'dumbbell' — pair of dumbbells, simple +/- stepper
+ *   - 'cable'    — cable machine
+ *   - 'machine'  — fixed-weight machine
+ *   - undefined  — unspecified, default behavior (current 10/1/0.5 stepper)
+ */
+export type BarType = string; // 'bar:olympic' | 'bodyweight' | 'dumbbell' | 'cable' | 'machine' | undefined
+
 export interface WorkoutExercise {
   id: string;
   workoutId: string;
   exerciseName: string;
   order: number;
   notes?: string;
+  barType?: BarType;
   updatedAt: Date;
   deleted: boolean;
 }

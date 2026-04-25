@@ -9,6 +9,7 @@ import HistoryPage from './pages/HistoryPage';
 import ExerciseDetailPage from './pages/ExerciseDetailPage';
 import WorkoutDetailPage from './pages/WorkoutDetailPage';
 import PRsPage from './pages/PRsPage';
+import SettingsPage from './pages/SettingsPage';
 
 function AuthGate() {
   const { user, loading, cloudEnabled } = useAuth();
@@ -45,6 +46,7 @@ function AppRoutes() {
           <Route path="history/:id" element={<WorkoutDetailPage />} />
           <Route path="exercise/:name" element={<ExerciseDetailPage />} />
           <Route path="prs" element={<PRsPage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

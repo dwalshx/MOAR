@@ -14,6 +14,7 @@ import Badge from './Badge';
 import ProgressBar from './ProgressBar';
 import AnimatedNumber from './AnimatedNumber';
 import NotesEditor from './NotesEditor';
+import BarTypeSelector from './BarTypeSelector';
 
 interface ExerciseCardProps {
   exercise: WorkoutExercise;
@@ -236,12 +237,17 @@ export default function ExerciseCard({
         <SetEntryForm
           exerciseName={exercise.exerciseName}
           workoutExerciseId={exercise.id}
+          barType={exercise.barType}
           onLogSet={handleLogSet}
         />
       </div>
 
-      {/* Per-exercise notes */}
-      <div className="mt-3">
+      {/* Bar type selector + notes */}
+      <div className="mt-3 flex items-center justify-between gap-2 flex-wrap">
+        <BarTypeSelector
+          value={exercise.barType}
+          onChange={(barType) => workoutService.updateExerciseBarType(exercise.id, barType)}
+        />
         <NotesEditor
           value={exercise.notes}
           onChange={(notes) => workoutService.updateExerciseNotes(exercise.id, notes)}

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router';
 import { useAuth } from '../../lib/auth';
 import { useAutoSync } from '../../hooks/useAutoSync';
 import { sync as syncNow } from '../../services/syncService';
@@ -8,6 +9,7 @@ export default function AccountMenu() {
   const { status, lastSyncAt, error } = useAutoSync();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!open) return;
@@ -83,6 +85,13 @@ export default function AccountMenu() {
                        active:bg-bg-card transition-colors min-h-[44px]"
           >
             Sync now
+          </button>
+          <button
+            onClick={() => { navigate('/settings'); setOpen(false); }}
+            className="w-full text-left px-4 py-3 text-sm text-text-primary
+                       active:bg-bg-card transition-colors min-h-[44px] border-t border-border"
+          >
+            Settings
           </button>
           <button
             onClick={() => { signOut(); setOpen(false); }}

@@ -4,6 +4,12 @@ interface StepperProps {
   min?: number;
   label?: string;
   increments?: number[];
+  /**
+   * Optional formatter for the button label. Receives the increment value.
+   * Defaults to the increment itself. Useful for plate-pair mode where
+   * tapping "+45" actually adds 90 (one plate per side).
+   */
+  buttonPrefix?: (inc: number) => string;
 }
 
 export default function Stepper({
@@ -12,11 +18,13 @@ export default function Stepper({
   min = 0,
   label,
   increments = [10, 1],
+  buttonPrefix,
 }: StepperProps) {
   const clamp = (v: number) => Math.max(min, v);
 
   const displayValue = value % 1 === 0 ? value.toString() : value.toFixed(1);
-  const fmtInc = (inc: number) => (inc % 1 === 0 ? inc.toString() : inc.toFixed(1));
+  const fmtInc = (inc: number) =>
+    buttonPrefix ? buttonPrefix(inc) : (inc % 1 === 0 ? inc.toString() : inc.toFixed(1));
 
   return (
     <div

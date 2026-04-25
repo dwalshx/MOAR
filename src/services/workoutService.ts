@@ -181,6 +181,10 @@ export const workoutService = {
     await db.workoutExercises.update(workoutExerciseId, { notes, updatedAt: new Date() });
   },
 
+  async updateExerciseBarType(workoutExerciseId: string, barType: string | undefined): Promise<void> {
+    await db.workoutExercises.update(workoutExerciseId, { barType, updatedAt: new Date() });
+  },
+
   async getWorkoutVolume(workoutId: string): Promise<number> {
     const exercises = await db.workoutExercises
       .where('workoutId').equals(workoutId)
