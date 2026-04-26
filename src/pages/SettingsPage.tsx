@@ -12,6 +12,8 @@ export default function SettingsPage() {
   const [bars, setBarsLocal] = useState<Bar[]>(settingsService.getBars());
   const [plates, setPlatesLocal] = useState<number[]>(settingsService.getPlates());
   const [plateMode, setPlateModeLocal] = useState(settingsService.getPlateMode());
+  const [restTarget, setRestTargetLocal] = useState(settingsService.getRestTarget());
+  const [restSound, setRestSoundLocal] = useState(settingsService.getRestSound());
   const [newPlate, setNewPlate] = useState('');
   const [newBarName, setNewBarName] = useState('');
   const [newBarWeight, setNewBarWeight] = useState('');
@@ -91,6 +93,48 @@ export default function SettingsPage() {
           />
           <span className="text-text-secondary text-sm">lbs</span>
         </div>
+      </Section>
+
+      {/* Rest timer */}
+      <Section title="Rest Timer" hint="Target rest time between sets. When you cross the target, the app dings (and vibrates on mobile).">
+        <div className="flex flex-wrap items-center gap-2">
+          {[0, 60, 90, 120, 150, 180, 240, 300].map(s => (
+            <button
+              key={s}
+              onClick={() => {
+                setRestTargetLocal(s);
+                settingsService.setRestTarget(s);
+              }}
+              className={`px-3 py-1.5 rounded-lg text-sm border transition-colors min-h-[40px] ${
+                restTarget === s
+                  ? 'bg-accent text-white border-accent'
+                  : 'bg-bg-card text-text-primary border-border active:border-accent'
+              }`}
+            >
+              {s === 0 ? 'Off' : s < 60 ? `${s}s` : `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`}
+            </button>
+          ))}
+        </div>
+        {restTarget > 0 && (
+          <label className="mt-3 flex items-center gap-3 cursor-pointer">
+            <span className="relative inline-block w-11 h-6 flex-shrink-0">
+              <input
+                type="checkbox"
+                checked={restSound}
+                onChange={(e) => {
+                  setRestSoundLocal(e.target.checked);
+                  settingsService.setRestSound(e.target.checked);
+                }}
+                className="sr-only peer"
+              />
+              <span className="absolute inset-0 bg-bg-card border border-border rounded-full peer-checked:bg-accent peer-checked:border-accent transition-colors" />
+              <span className="absolute left-1 top-1 w-4 h-4 bg-text-primary rounded-full transition-transform peer-checked:translate-x-5" />
+            </span>
+            <span className="text-text-primary text-sm">
+              Sound {restSound ? 'on' : 'off'}
+            </span>
+          </label>
+        )}
       </Section>
 
       {/* Plate mode */}

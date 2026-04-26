@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
+import { settingsService } from '../../services/settingsService';
+import { playDing, vibrate } from '../../lib/audio';
 
 interface WorkoutTimersProps {
   workoutId: string;
@@ -19,6 +21,11 @@ function formatDuration(seconds: number): string {
 
 export default function WorkoutTimers({ workoutId, workoutStartedAt }: WorkoutTimersProps) {
   const [now, setNow] = useState(() => Date.now());
+  const restTarget = settingsService.getRestTarget();
+  const restSound = settingsService.getRestSound();
+
+  // Per-set-time we've already alerted on, so we don't ding repeatedly
+  const alertedForRef = useRef<number | null>(null);
 
   // Tick once per second
   useEffect(() => {
@@ -43,6 +50,22 @@ export default function WorkoutTimers({ workoutId, workoutStartedAt }: WorkoutTi
   const elapsedSec = Math.max(0, Math.floor((now - workoutStartedAt.getTime()) / 1000));
   const restSec = lastSetTime ? Math.max(0, Math.floor((now - lastSetTime) / 1000)) : null;
 
+  // Fire the ding when rest crosses target — but only once per set
+  useEffect(() => {
+    if (!lastSetTime || !restTarget || !restSec) return;
+    if (restSec >= restTarget && alertedForRef.current !== lastSetTime) {
+      alertedForRef.current = lastSetTime;
+      if (restSound) playDing();
+      vibrate([100, 50, 100]);
+    }
+  }, [restSec, restTarget, restSound, lastSetTime]);
+
+  // Color coding: target met → accent, otherwise gradients of secondary→success
+  const restColor = restSec === null ? 'text-text-secondary'
+    : restTarget && restSec >= restTarget ? 'text-accent'
+    : restSec >= 90 ? 'text-success'
+    : 'text-text-secondary';
+
   return (
     <div className="flex items-center gap-4 text-xs text-text-secondary tabular-nums">
       <div className="flex items-center gap-1">
@@ -53,11 +76,12 @@ export default function WorkoutTimers({ workoutId, workoutStartedAt }: WorkoutTi
         <span className="font-medium">{formatDuration(elapsedSec)}</span>
       </div>
       {restSec !== null && (
-        <div className={`flex items-center gap-1 ${
-          restSec >= 180 ? 'text-accent' : restSec >= 90 ? 'text-success' : 'text-text-secondary'
-        }`}>
+        <div className={`flex items-center gap-1 ${restColor}`}>
           <span className="opacity-70">rest</span>
           <span className="font-medium">{formatDuration(restSec)}</span>
+          {restTarget > 0 && (
+            <span className="opacity-50 text-[10px]">/ {formatDuration(restTarget)}</span>
+          )}
         </div>
       )}
     </div>

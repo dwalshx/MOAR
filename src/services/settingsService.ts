@@ -2,6 +2,8 @@ const BODY_WEIGHT_KEY = 'moar_body_weight';
 const BARS_KEY = 'moar_bars';
 const PLATES_KEY = 'moar_plates';
 const PLATE_MODE_KEY = 'moar_plate_mode';
+const REST_TARGET_KEY = 'moar_rest_target';   // seconds, 0 = off
+const REST_SOUND_KEY = 'moar_rest_sound';     // boolean
 
 export interface Bar {
   id: string;       // 'olympic', 'trap', or user-defined slug
@@ -93,6 +95,33 @@ export const settingsService = {
   setPlateMode(enabled: boolean): void {
     if (!hasLocalStorage()) return;
     localStorage.setItem(PLATE_MODE_KEY, enabled ? 'true' : 'false');
+  },
+
+  // --- Rest timer ---
+  /** Target rest duration in seconds. 0 means disabled (no alert). */
+  getRestTarget(): number {
+    if (!hasLocalStorage()) return 0;
+    const v = localStorage.getItem(REST_TARGET_KEY);
+    if (!v) return 0;
+    const n = parseInt(v, 10);
+    return isNaN(n) ? 0 : n;
+  },
+
+  setRestTarget(seconds: number): void {
+    if (!hasLocalStorage()) return;
+    localStorage.setItem(REST_TARGET_KEY, seconds.toString());
+  },
+
+  getRestSound(): boolean {
+    if (!hasLocalStorage()) return true; // default on
+    const v = localStorage.getItem(REST_SOUND_KEY);
+    if (v === null) return true;
+    return v === 'true';
+  },
+
+  setRestSound(enabled: boolean): void {
+    if (!hasLocalStorage()) return;
+    localStorage.setItem(REST_SOUND_KEY, enabled ? 'true' : 'false');
   },
 };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { workoutService } from '../../services/workoutService';
 import { settingsService, computePlateBreakdown } from '../../services/settingsService';
+import { unlockAudio } from '../../lib/audio';
 import Stepper from './Stepper';
 
 interface SetEntryFormProps {
@@ -54,6 +55,8 @@ export default function SetEntryForm({
   }, [exerciseName, isBodyweight, bar]);
 
   const handleLogSet = () => {
+    // Unlock audio while we have a user gesture, so the rest-timer ding can fire later
+    unlockAudio();
     onLogSet(weight, reps);
   };
 
