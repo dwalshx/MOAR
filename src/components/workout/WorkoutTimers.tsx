@@ -29,7 +29,8 @@ export default function WorkoutTimers({ workoutId, workoutStartedAt }: WorkoutTi
   // Find the most recent set timestamp across all exercises in this workout
   const lastSetTime = useLiveQuery(async () => {
     const exs = await db.workoutExercises
-      .where('workoutId').equals(workoutId).toArray();
+      .where('workoutId').equals(workoutId)
+      .filter(e => !e.deleted).toArray();
     if (exs.length === 0) return null;
     const sets = await db.workoutSets
       .where('workoutExerciseId').anyOf(exs.map(e => e.id))

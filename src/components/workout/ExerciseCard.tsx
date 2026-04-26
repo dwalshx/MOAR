@@ -45,6 +45,7 @@ export default function ExerciseCard({
       db.workoutSets
         .where('workoutExerciseId')
         .equals(exercise.id)
+        .filter(s => !s.deleted)
         .sortBy('setNumber'),
     [exercise.id]
   );

@@ -43,7 +43,7 @@ function TrophyIcon({ className }: { className?: string }) {
 
 export default function BottomNav() {
   const activeWorkout = useLiveQuery(
-    () => db.workouts.filter(w => !w.completedAt).first()
+    () => db.workouts.filter(w => !w.completedAt && !w.deleted).first()
   );
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>

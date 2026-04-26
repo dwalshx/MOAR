@@ -13,10 +13,10 @@ function downloadFile(content: string, filename: string, mimeType: string) {
 }
 
 export async function exportJSON(): Promise<void> {
-  const workouts = await db.workouts.toArray();
-  const exercises = await db.workoutExercises.toArray();
-  const sets = await db.workoutSets.toArray();
-  const templates = await db.workoutTemplates.toArray();
+  const workouts = await db.workouts.filter(w => !w.deleted).toArray();
+  const exercises = await db.workoutExercises.filter(e => !e.deleted).toArray();
+  const sets = await db.workoutSets.filter(s => !s.deleted).toArray();
+  const templates = await db.workoutTemplates.filter(t => !t.deleted).toArray();
 
   const data = {
     exportedAt: new Date().toISOString(),
@@ -35,7 +35,7 @@ export async function exportJSON(): Promise<void> {
 }
 
 export async function exportCSV(): Promise<void> {
-  const workouts = await db.workouts.toArray();
+  const workouts = await db.workouts.filter(w => !w.deleted).toArray();
   const bw = settingsService.getBodyWeight();
 
   const rows: string[][] = [
@@ -48,11 +48,13 @@ export async function exportCSV(): Promise<void> {
 
     const exercises = await db.workoutExercises
       .where('workoutId').equals(w.id!)
+      .filter(e => !e.deleted)
       .sortBy('order');
 
     for (const ex of exercises) {
       const sets = await db.workoutSets
         .where('workoutExerciseId').equals(ex.id!)
+        .filter(s => !s.deleted)
         .sortBy('setNumber');
 
       for (const s of sets) {

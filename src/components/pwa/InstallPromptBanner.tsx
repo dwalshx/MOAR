@@ -66,7 +66,7 @@ export default function InstallPromptBanner() {
   const completedCount = useLiveQuery(
     async () => {
       const all = await db.workouts.toArray();
-      return all.filter((w) => w.completedAt).length;
+      return all.filter((w) => w.completedAt && !w.deleted).length;
     },
     [],
     0,

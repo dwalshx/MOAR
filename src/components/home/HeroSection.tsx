@@ -38,10 +38,10 @@ interface Stats {
 }
 
 async function computeStats(): Promise<Stats> {
-  const workouts = await db.workouts.filter(w => !!w.completedAt).toArray();
-  const sets = await db.workoutSets.count();
+  const workouts = await db.workouts.filter(w => !w.deleted && !!w.completedAt).toArray();
+  const allSets = await db.workoutSets.filter(s => !s.deleted).toArray();
+  const sets = allSets.length;
   let totalVolume = 0;
-  const allSets = await db.workoutSets.toArray();
   for (const s of allSets) {
     totalVolume += setVolume(s.weight, s.reps, settingsService.getBodyWeight());
   }
@@ -81,7 +81,7 @@ export default function HeroSection() {
   const [mounted, setMounted] = useState(false);
 
   const workoutCount = useLiveQuery(
-    () => db.workouts.filter(w => !!w.completedAt).count()
+    () => db.workouts.filter(w => !w.deleted && !!w.completedAt).count()
   );
 
   const [stats, setStats] = useState<Stats | null>(null);

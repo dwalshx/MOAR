@@ -11,7 +11,7 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const activeWorkout = useLiveQuery(
-    () => db.workouts.filter(w => !w.completedAt).first()
+    () => db.workouts.filter(w => !w.completedAt && !w.deleted).first()
   );
 
   const handleStartWorkout = async () => {

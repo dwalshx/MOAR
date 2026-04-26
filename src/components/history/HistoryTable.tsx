@@ -15,8 +15,7 @@ interface FlatRow {
 
 export default function HistoryTable() {
   const rows = useLiveQuery(async () => {
-    const workouts = await db.workouts.filter(w => !!w.completedAt).toArray();
-    // Sort newest first
+    const workouts = await db.workouts.filter(w => !w.deleted && !!w.completedAt).toArray();
     workouts.sort((a, b) => (b.completedAt!.getTime()) - (a.completedAt!.getTime()));
 
     const bw = settingsService.getBodyWeight();
@@ -25,11 +24,13 @@ export default function HistoryTable() {
     for (const w of workouts) {
       const exercises = await db.workoutExercises
         .where('workoutId').equals(w.id!)
+        .filter(e => !e.deleted)
         .sortBy('order');
 
       for (const ex of exercises) {
         const sets = await db.workoutSets
           .where('workoutExerciseId').equals(ex.id!)
+          .filter(s => !s.deleted)
           .sortBy('setNumber');
 
         for (const s of sets) {

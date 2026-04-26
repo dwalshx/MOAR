@@ -33,20 +33,26 @@ export default function ActiveWorkout({ workoutId, onSummaryShow }: ActiveWorkou
   );
 
   const exercises = useLiveQuery(
-    () =>
-      db.workoutExercises
+    async () => {
+      const all = await db.workoutExercises
         .where('workoutId')
         .equals(workoutId)
-        .sortBy('order'),
+        .filter(e => !e.deleted)
+        .sortBy('order');
+      return all;
+    },
     [workoutId]
   );
 
-  // Live total volume for current workout
+  // Live total volume for current workout (excludes soft-deleted)
   const currentWorkoutVolume = useLiveQuery(async () => {
-    const exs = await db.workoutExercises.where('workoutId').equals(workoutId).toArray();
+    const exs = await db.workoutExercises
+      .where('workoutId').equals(workoutId)
+      .filter(e => !e.deleted).toArray();
     if (exs.length === 0) return 0;
     const sets = await db.workoutSets
-      .where('workoutExerciseId').anyOf(exs.map(e => e.id)).toArray();
+      .where('workoutExerciseId').anyOf(exs.map(e => e.id))
+      .filter(s => !s.deleted).toArray();
     const bw = settingsService.getBodyWeight();
     return sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, bw), 0);
   }, [workoutId]);
