@@ -27,6 +27,10 @@ export interface WorkoutSummary {
   winCount: number;
   totalExercises: number;
   bestAchievement: string | null;
+  durationMinutes: number | null;
+  intensity: number | null;          // lbs/min
+  previousIntensity: number | null;
+  intensityChangePercent: number | null;
 }
 
 export interface NudgeResult {
@@ -339,6 +343,10 @@ export async function generateWorkoutSummary(
       winCount: 0,
       totalExercises: 0,
       bestAchievement: null,
+      durationMinutes: null,
+      intensity: null,
+      previousIntensity: null,
+      intensityChangePercent: null,
     };
   }
 
@@ -457,12 +465,63 @@ export async function generateWorkoutSummary(
 
   const winCount = exerciseComparisons.filter(e => e.direction === 'up').length;
 
-  // Best achievement: prefer PRs, fallback to biggest volume % gain
+  // Compute current workout duration & intensity
+  let durationMinutes: number | null = null;
+  {
+    const allCurrentExIds = currentExercises.map(e => e.id);
+    if (allCurrentExIds.length > 0) {
+      const allCurrentSets = await db.workoutSets
+        .where('workoutExerciseId').anyOf(allCurrentExIds)
+        .filter(s => !s.deleted).toArray();
+      if (allCurrentSets.length >= 2) {
+        const earliest = allCurrentSets.reduce((min, s) =>
+          s.timestamp.getTime() < min ? s.timestamp.getTime() : min, Infinity);
+        const latest = allCurrentSets.reduce((max, s) =>
+          s.timestamp.getTime() > max ? s.timestamp.getTime() : max, 0);
+        durationMinutes = Math.max(1, Math.round((latest - earliest) / 60000));
+      } else if (allCurrentSets.length === 1) {
+        durationMinutes = 1;
+      }
+    }
+  }
+  const intensity = (durationMinutes && totalVolume > 0)
+    ? Math.round(totalVolume / durationMinutes)
+    : null;
+
+  // Compute previous workout intensity
+  let previousIntensity: number | null = null;
+  let intensityChangePercent: number | null = null;
+  if (previousWorkout && previousTotalVolume && previousTotalVolume > 0) {
+    const prevExs = await db.workoutExercises
+      .where('workoutId').equals(previousWorkout.id)
+      .filter(e => !e.deleted).toArray();
+    const prevExIds = prevExs.map(e => e.id);
+    if (prevExIds.length > 0) {
+      const prevSets = await db.workoutSets
+        .where('workoutExerciseId').anyOf(prevExIds)
+        .filter(s => !s.deleted).toArray();
+      if (prevSets.length >= 2) {
+        const earliest = prevSets.reduce((min, s) =>
+          s.timestamp.getTime() < min ? s.timestamp.getTime() : min, Infinity);
+        const latest = prevSets.reduce((max, s) =>
+          s.timestamp.getTime() > max ? s.timestamp.getTime() : max, 0);
+        const prevDuration = Math.max(1, Math.round((latest - earliest) / 60000));
+        previousIntensity = Math.round(previousTotalVolume / prevDuration);
+        if (intensity !== null && previousIntensity > 0) {
+          intensityChangePercent = ((intensity - previousIntensity) / previousIntensity) * 100;
+        }
+      }
+    }
+  }
+
+  // Best achievement: prefer PRs, fallback to intensity gain, then volume gain
   let bestAchievement: string | null = null;
   if (prDescriptions.length > 0) {
     bestAchievement = prDescriptions[0];
   } else if (previousWorkout && volumeChangePercent != null && volumeChangePercent > 0) {
     bestAchievement = `Total volume up ${volumeChangePercent.toFixed(1)}%`;
+  } else if (intensityChangePercent != null && intensityChangePercent > 5) {
+    bestAchievement = `Intensity up ${intensityChangePercent.toFixed(1)}%`;
   } else if (!previousWorkout) {
     bestAchievement = 'First workout completed!';
   }
@@ -475,5 +534,9 @@ export async function generateWorkoutSummary(
     winCount,
     totalExercises: currentExercises.length,
     bestAchievement,
+    durationMinutes,
+    intensity,
+    previousIntensity,
+    intensityChangePercent,
   };
 }

@@ -51,6 +51,32 @@ export default function WorkoutSummary({ summary, onDone }: WorkoutSummaryProps)
             {summary.volumeChangePercent.toFixed(1)}%
           </p>
         ) : null}
+
+        {/* Intensity row */}
+        {summary.intensity !== null && summary.durationMinutes !== null && (
+          <div className="mt-3 flex items-center justify-center gap-4 text-sm">
+            <span className="text-text-secondary">
+              <span className="text-text-primary font-bold">{summary.intensity}</span> lbs/min
+            </span>
+            <span className="text-text-secondary">
+              over <span className="text-text-primary font-bold">{summary.durationMinutes}</span> min
+            </span>
+            {summary.intensityChangePercent !== null && (
+              <span
+                className={`font-semibold ${
+                  summary.intensityChangePercent > 0
+                    ? 'text-success'
+                    : summary.intensityChangePercent < 0
+                      ? 'text-red-500'
+                      : 'text-text-secondary'
+                }`}
+              >
+                {summary.intensityChangePercent > 0 ? '+' : ''}
+                {summary.intensityChangePercent.toFixed(1)}%
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Exercise list */}

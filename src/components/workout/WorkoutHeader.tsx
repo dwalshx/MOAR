@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { useLiveQuery } from 'dexie-react-hooks';
 import type { Workout } from '../../db/models';
+import { db } from '../../db/database';
 import { workoutService } from '../../services/workoutService';
 import { formatVolume } from '../../utils/formatters';
 import ProgressBar from './ProgressBar';
@@ -79,16 +81,12 @@ export default function WorkoutHeader({
         </button>
       </div>
 
-      {/* Live volume tally — always visible, shows the running total */}
-      <div className="bg-bg-card/60 rounded-lg px-4 py-3 mt-2 flex items-center justify-between">
-        <span className="text-text-secondary text-xs uppercase tracking-wide">
-          {hasComparison ? 'Volume' : 'Volume moved'}
-        </span>
-        <span className="text-2xl font-black text-accent tabular-nums">
-          <AnimatedNumber value={currentVolume} />
-          <span className="text-sm text-text-secondary font-medium ml-1">lbs</span>
-        </span>
-      </div>
+      {/* Live volume tally + intensity */}
+      <VolumeAndIntensity
+        workoutId={workout.id}
+        startedAt={workout.startedAt}
+        currentVolume={currentVolume}
+      />
 
       {/* Workout-level progress bar — only shown when there's a previous to beat */}
       {hasComparison && (
@@ -109,6 +107,67 @@ export default function WorkoutHeader({
           placeholder="Note for this workout..."
         />
       </div>
+    </div>
+  );
+}
+
+function VolumeAndIntensity({
+  workoutId,
+  startedAt,
+  currentVolume,
+}: {
+  workoutId: string;
+  startedAt: Date;
+  currentVolume: number;
+}) {
+  const [now, setNow] = useState(() => Date.now());
+
+  // Tick every second so the intensity metric stays fresh
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Find the most recent set timestamp for "active duration" so a long pause
+  // before the first set doesn't artificially deflate intensity
+  const lastSetTime = useLiveQuery(async () => {
+    const exs = await db.workoutExercises
+      .where('workoutId').equals(workoutId)
+      .filter(e => !e.deleted).toArray();
+    if (exs.length === 0) return null;
+    const sets = await db.workoutSets
+      .where('workoutExerciseId').anyOf(exs.map(e => e.id))
+      .filter(s => !s.deleted).toArray();
+    if (sets.length === 0) return null;
+    return sets.reduce((max, s) =>
+      s.timestamp.getTime() > max ? s.timestamp.getTime() : max, 0);
+  }, [workoutId]);
+
+  // Intensity = volume / minutes elapsed.
+  // If they've logged a set, use start → last-set as the "active" window
+  // (excludes ongoing rest); otherwise use start → now.
+  const endMs = lastSetTime ?? now;
+  const elapsedMin = Math.max(1 / 60, (endMs - startedAt.getTime()) / 60000);
+  const intensity = currentVolume > 0 ? Math.round(currentVolume / elapsedMin) : 0;
+
+  return (
+    <div className="bg-bg-card/60 rounded-lg px-4 py-3 mt-2 flex items-center justify-between gap-3">
+      <div className="flex flex-col">
+        <span className="text-text-secondary text-[10px] uppercase tracking-wide">Volume</span>
+        <span className="text-2xl font-black text-accent tabular-nums leading-none mt-0.5">
+          <AnimatedNumber value={currentVolume} />
+          <span className="text-sm text-text-secondary font-medium ml-1">lbs</span>
+        </span>
+      </div>
+      {currentVolume > 0 && (
+        <div className="flex flex-col items-end">
+          <span className="text-text-secondary text-[10px] uppercase tracking-wide">Intensity</span>
+          <span className="text-base font-bold text-text-primary tabular-nums leading-none mt-0.5">
+            <AnimatedNumber value={intensity} />
+            <span className="text-xs text-text-secondary font-medium ml-1">lbs/min</span>
+          </span>
+        </div>
+      )}
     </div>
   );
 }
