@@ -94,10 +94,25 @@ export default function WorkoutDetailPage() {
         ))}
       </div>
 
-      <div className="bg-bg-card rounded-xl p-4 text-center">
-        <div className="text-text-secondary text-sm">Total Volume</div>
-        <div className="text-text-primary text-xl font-bold mt-1">
-          {formatVolume(detail.totalVolume)}
+      <div className="grid grid-cols-2 gap-2">
+        <div className="bg-bg-card rounded-xl p-4 text-center">
+          <div className="text-text-secondary text-xs uppercase tracking-wide">Total Volume</div>
+          <div className="text-text-primary text-xl font-bold mt-1 tabular-nums">
+            {formatVolume(detail.totalVolume)}
+          </div>
+        </div>
+        <div className="bg-bg-card rounded-xl p-4 text-center">
+          <div className="text-text-secondary text-xs uppercase tracking-wide">Intensity</div>
+          <div className="text-text-primary text-xl font-bold mt-1 tabular-nums">
+            {detail.intensity !== null ? (
+              <>
+                {detail.intensity}
+                <span className="text-text-secondary text-sm font-medium ml-1">lbs/min</span>
+              </>
+            ) : (
+              <span className="text-text-secondary text-sm">—</span>
+            )}
+          </div>
         </div>
       </div>
     </div>

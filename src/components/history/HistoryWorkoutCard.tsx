@@ -15,10 +15,19 @@ export default function HistoryWorkoutCard({ workout, onTap, onDelete }: History
     >
       <div className="flex-1 min-w-0">
         <div className="text-text-primary font-semibold truncate">{workout.name}</div>
-        <div className="flex items-center gap-1 text-text-secondary text-sm">
+        <div className="flex items-center flex-wrap gap-x-1.5 gap-y-0.5 text-text-secondary text-sm">
           <span>{formatRelativeDate(workout.completedAt)}</span>
           <span>&middot;</span>
           <span>{formatVolume(workout.totalVolume)}</span>
+          {workout.intensity !== null && (
+            <>
+              <span>&middot;</span>
+              <span className="text-text-secondary">
+                <span className="text-text-primary tabular-nums font-medium">{workout.intensity}</span>
+                <span className="text-xs ml-0.5">lbs/min</span>
+              </span>
+            </>
+          )}
         </div>
       </div>
       {onDelete && (

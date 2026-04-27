@@ -10,6 +10,8 @@ export interface RecentWorkout {
   startedAt: Date;
   completedAt: Date;
   totalVolume: number;
+  durationMinutes: number | null;
+  intensity: number | null;        // lbs/min
 }
 
 export interface WorkoutDetail {
@@ -18,7 +20,8 @@ export interface WorkoutDetail {
   startedAt: Date;
   completedAt: Date;
   totalVolume: number;
-  duration: number | null; // minutes
+  duration: number | null;     // minutes
+  intensity: number | null;    // lbs/min
   notes?: string;
   exercises: WorkoutExerciseDetail[];
 }
@@ -198,6 +201,35 @@ export const workoutService = {
     return sets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
   },
 
+  /**
+   * Compute workout duration in minutes (latest set − earliest set).
+   * Returns null when there are 0 sets.
+   */
+  async getWorkoutDuration(workoutId: string): Promise<number | null> {
+    const exercises = await db.workoutExercises
+      .where('workoutId').equals(workoutId)
+      .filter(notDeleted).toArray();
+    if (exercises.length === 0) return null;
+
+    const sets = await db.workoutSets
+      .where('workoutExerciseId').anyOf(exercises.map(e => e.id))
+      .filter(notDeleted).toArray();
+    if (sets.length === 0) return null;
+    if (sets.length === 1) return 1;
+
+    let earliest = Infinity;
+    let latest = 0;
+    for (const s of sets) {
+      const t = s.timestamp instanceof Date ? s.timestamp.getTime() : 0;
+      if (t > 0) {
+        if (t < earliest) earliest = t;
+        if (t > latest) latest = t;
+      }
+    }
+    if (earliest === Infinity || latest === 0) return null;
+    return Math.max(1, Math.round((latest - earliest) / 60000));
+  },
+
   async getRecentWorkouts(limit: number = 10): Promise<RecentWorkout[]> {
     const allWorkouts = await db.workouts.filter(notDeleted).toArray();
     const completed = allWorkouts
@@ -208,12 +240,18 @@ export const workoutService = {
     const results: RecentWorkout[] = [];
     for (const w of completed) {
       const totalVolume = await this.getWorkoutVolume(w.id);
+      const durationMinutes = await this.getWorkoutDuration(w.id);
+      const intensity = durationMinutes && totalVolume > 0
+        ? Math.round(totalVolume / durationMinutes)
+        : null;
       results.push({
         id: w.id,
         name: w.name,
         startedAt: w.startedAt,
         completedAt: w.completedAt!,
         totalVolume,
+        durationMinutes,
+        intensity,
       });
     }
     return results;
@@ -373,12 +411,18 @@ export const workoutService = {
     const results: RecentWorkout[] = [];
     for (const w of completed) {
       const totalVolume = await this.getWorkoutVolume(w.id);
+      const durationMinutes = await this.getWorkoutDuration(w.id);
+      const intensity = durationMinutes && totalVolume > 0
+        ? Math.round(totalVolume / durationMinutes)
+        : null;
       results.push({
         id: w.id,
         name: w.name,
         startedAt: w.startedAt,
         completedAt: w.completedAt!,
         totalVolume,
+        durationMinutes,
+        intensity,
       });
     }
     return results;
@@ -433,6 +477,10 @@ export const workoutService = {
       }
     }
 
+    const intensity = duration && totalVolume > 0
+      ? Math.round(totalVolume / duration)
+      : null;
+
     return {
       id: workout.id,
       name: workout.name,
@@ -440,6 +488,7 @@ export const workoutService = {
       completedAt: workout.completedAt,
       totalVolume,
       duration,
+      intensity,
       notes: workout.notes,
       exercises: exerciseDetails,
     };
