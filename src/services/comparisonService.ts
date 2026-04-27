@@ -78,19 +78,34 @@ export function classifySet(
 }
 
 /**
- * Suggest a target based on last session's first set.
- * Format: "Last time: {weight} x {reps}. Try {weight} x {reps+1} or {weight+5} x {reps}"
+ * Suggest a target for the user's CURRENT set, based on what they did in the
+ * matching set number from last session (or the closest if missing).
+ *
+ * @param lastSessionSets  All sets from the previous session of this exercise
+ * @param currentSetNumber The set number the user is about to log (1-indexed).
+ *                         If omitted, uses the first set (legacy behavior).
+ *
+ * Format: "Last time set N: {weight} x {reps}. Try {weight} x {reps+1} or {weight+5} x {reps}"
  */
 export function suggestTarget(
   lastSessionSets: { setNumber: number; weight: number; reps: number }[],
+  currentSetNumber: number = 1,
 ): string | null {
   if (lastSessionSets.length === 0) return null;
 
-  // Use the first set (sorted by setNumber)
   const sorted = [...lastSessionSets].sort((a, b) => a.setNumber - b.setNumber);
-  const first = sorted[0];
 
-  return `Last time: ${first.weight} x ${first.reps}. Try ${first.weight} x ${first.reps + 1} or ${first.weight + 5} x ${first.reps}`;
+  // Try to find the matching set number, fall back to last available set
+  const target =
+    sorted.find(s => s.setNumber === currentSetNumber) ??
+    sorted[sorted.length - 1];
+
+  const setLabel =
+    sorted.find(s => s.setNumber === currentSetNumber)
+      ? `Last time set ${currentSetNumber}`
+      : 'Last time';
+
+  return `${setLabel}: ${target.weight} x ${target.reps}. Try ${target.weight} x ${target.reps + 1} or ${target.weight + 5} x ${target.reps}`;
 }
 
 export interface ExercisePR {
@@ -285,7 +300,11 @@ export async function getSetBadgesForExercise(
 export async function getLastSessionSetsForExercise(
   exerciseName: string,
   excludeWorkoutId: string,
-): Promise<{ sets: { setNumber: number; weight: number; reps: number }[]; previousVolume: number }> {
+): Promise<{
+  sets: { setNumber: number; weight: number; reps: number }[];
+  previousVolume: number;
+  lastDate: Date | null;
+}> {
   const allExerciseRecords = await db.workoutExercises
     .where('exerciseName')
     .equals(exerciseName)
@@ -299,13 +318,13 @@ export async function getLastSessionSetsForExercise(
     .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime());
 
   if (completedWorkouts.length === 0) {
-    return { sets: [], previousVolume: 0 };
+    return { sets: [], previousVolume: 0, lastDate: null };
   }
 
   const lastWorkout = completedWorkouts[0];
   const lastExerciseRecords = allExerciseRecords.filter(e => e.workoutId === lastWorkout.id);
   if (lastExerciseRecords.length === 0) {
-    return { sets: [], previousVolume: 0 };
+    return { sets: [], previousVolume: 0, lastDate: lastWorkout.completedAt ?? null };
   }
 
   const lastExIds = lastExerciseRecords.map(e => e.id);
@@ -315,15 +334,17 @@ export async function getLastSessionSetsForExercise(
     .filter(s => !s.deleted)
     .toArray();
 
-  const sets = lastSets.map(s => ({
-    setNumber: s.setNumber,
-    weight: s.weight,
-    reps: s.reps,
-  }));
+  const sets = lastSets
+    .map(s => ({
+      setNumber: s.setNumber,
+      weight: s.weight,
+      reps: s.reps,
+    }))
+    .sort((a, b) => a.setNumber - b.setNumber);
 
   const previousVolume = lastSets.reduce((sum, s) => sum + setVolume(s.weight, s.reps, settingsService.getBodyWeight()), 0);
 
-  return { sets, previousVolume };
+  return { sets, previousVolume, lastDate: lastWorkout.completedAt ?? null };
 }
 
 /**

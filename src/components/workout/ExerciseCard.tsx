@@ -35,10 +35,14 @@ export default function ExerciseCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const [badges, setBadges] = useState<Map<string, BadgeType>>(new Map());
   const [isComeback, setIsComeback] = useState(false);
-  const [nudgeText, setNudgeText] = useState<string | null>(null);
+  const [lastSessionSets, setLastSessionSets] = useState<
+    { setNumber: number; weight: number; reps: number }[]
+  >([]);
+  const [lastSessionDate, setLastSessionDate] = useState<Date | null>(null);
   const [currentVolume, setCurrentVolume] = useState(0);
   const [previousVolume, setPreviousVolume] = useState<number | null>(null);
   const [pr, setPr] = useState<ExercisePR | null>(null);
+  const [peekOpen, setPeekOpen] = useState(false);
 
   const sets = useLiveQuery(
     () =>
@@ -63,14 +67,22 @@ export default function ExerciseCard({
     setCurrentVolume(vol);
   }, [sets, exercise.id, workoutId]);
 
-  // Compute nudge text, previous volume, and PR on mount
+  // Fetch last session data and PR on mount (or when exercise changes)
   useEffect(() => {
     getLastSessionSetsForExercise(exercise.exerciseName, workoutId).then(result => {
-      setNudgeText(suggestTarget(result.sets));
+      setLastSessionSets(result.sets);
+      setLastSessionDate(result.lastDate);
       setPreviousVolume(result.previousVolume > 0 ? result.previousVolume : null);
     });
     getExercisePR(exercise.exerciseName).then(setPr);
   }, [exercise.exerciseName, workoutId]);
+
+  // Recompute nudge whenever the user's set count changes — points at the
+  // matching set number from last session
+  const currentSetNumber = (sets?.length ?? 0) + 1;
+  const nudgeText = lastSessionSets.length > 0
+    ? suggestTarget(lastSessionSets, currentSetNumber)
+    : null;
 
   // Scroll into view when expanded
   useEffect(() => {
@@ -154,6 +166,24 @@ export default function ExerciseCard({
           {exercise.exerciseName}
         </span>
         <div className="flex items-center gap-1">
+          {lastSessionSets.length > 0 && (
+            <button
+              type="button"
+              className={`min-w-[36px] min-h-[36px] flex items-center justify-center transition-colors ${
+                peekOpen ? 'text-accent' : 'text-text-secondary active:text-accent'
+              }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setPeekOpen(v => !v);
+              }}
+              aria-label="Peek at last session"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+            </button>
+          )}
           {onDelete && (
             <button
               type="button"
@@ -182,6 +212,39 @@ export default function ExerciseCard({
           </svg>
         </div>
       </div>
+
+      {/* Quick peek: last session's full set list */}
+      {peekOpen && lastSessionSets.length > 0 && (
+        <div className="mt-2 bg-bg-secondary/80 border border-border rounded-lg p-3">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-text-secondary text-[10px] uppercase tracking-wide font-semibold">
+              Last session
+            </span>
+            {lastSessionDate && (
+              <span className="text-text-secondary text-[10px]">
+                {lastSessionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </span>
+            )}
+          </div>
+          <table className="w-full text-xs tabular-nums">
+            <tbody>
+              {lastSessionSets.map(s => {
+                const isCurrentSet = s.setNumber === currentSetNumber;
+                return (
+                  <tr
+                    key={s.setNumber}
+                    className={isCurrentSet ? 'text-accent font-semibold' : 'text-text-primary'}
+                  >
+                    <td className="py-0.5 w-12">Set {s.setNumber}</td>
+                    <td className="py-0.5">{s.weight} lbs</td>
+                    <td className="py-0.5 text-right">{s.reps} reps</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Per-exercise live volume tally */}
       {sets.length > 0 && (

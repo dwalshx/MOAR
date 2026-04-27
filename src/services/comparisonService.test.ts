@@ -121,7 +121,7 @@ describe('suggestTarget', () => {
       { setNumber: 2, weight: 135, reps: 7 },
     ];
     const result = suggestTarget(lastSessionSets);
-    expect(result).toBe('Last time: 135 x 8. Try 135 x 9 or 140 x 8');
+    expect(result).toBe('Last time set 1: 135 x 8. Try 135 x 9 or 140 x 8');
   });
 
   it('returns null when lastSessionSets is empty', () => {
@@ -132,7 +132,26 @@ describe('suggestTarget', () => {
   it('uses +5 for weight suggestion', () => {
     const lastSessionSets = [{ setNumber: 1, weight: 200, reps: 5 }];
     const result = suggestTarget(lastSessionSets);
-    expect(result).toBe('Last time: 200 x 5. Try 200 x 6 or 205 x 5');
+    expect(result).toBe('Last time set 1: 200 x 5. Try 200 x 6 or 205 x 5');
+  });
+
+  it('points at the matching set number when given a current set', () => {
+    const lastSessionSets = [
+      { setNumber: 1, weight: 135, reps: 10 },
+      { setNumber: 2, weight: 135, reps: 8 },
+      { setNumber: 3, weight: 135, reps: 6 },
+    ];
+    const result = suggestTarget(lastSessionSets, 2);
+    expect(result).toBe('Last time set 2: 135 x 8. Try 135 x 9 or 140 x 8');
+  });
+
+  it('falls back to last available set when current set has no match', () => {
+    const lastSessionSets = [
+      { setNumber: 1, weight: 100, reps: 10 },
+      { setNumber: 2, weight: 100, reps: 8 },
+    ];
+    const result = suggestTarget(lastSessionSets, 5);
+    expect(result).toBe('Last time: 100 x 8. Try 100 x 9 or 105 x 8');
   });
 });
 
