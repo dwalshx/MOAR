@@ -277,6 +277,7 @@ export default function ExerciseCard({
               key={s.id}
               set={s}
               badge={badges.get(s.id!) || null}
+              isBodyweight={exercise.barType === 'bodyweight'}
               onUpdate={handleUpdateSet}
               onDelete={handleDeleteSet}
             />

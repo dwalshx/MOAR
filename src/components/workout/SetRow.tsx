@@ -2,17 +2,19 @@ import { useState } from 'react';
 import type { WorkoutSet } from '../../db/models';
 import type { BadgeType } from '../../services/comparisonService';
 import { useSwipeToDelete } from '../../hooks/useSwipeToDelete';
+import { settingsService } from '../../services/settingsService';
 import Stepper from './Stepper';
 import Badge from './Badge';
 
 interface SetRowProps {
   set: WorkoutSet;
   badge?: BadgeType | null;
+  isBodyweight?: boolean;
   onUpdate: (setId: string, weight: number, reps: number) => void;
   onDelete: (setId: string) => void;
 }
 
-export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) {
+export default function SetRow({ set, badge, isBodyweight, onUpdate, onDelete }: SetRowProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editWeight, setEditWeight] = useState(set.weight);
   const [editReps, setEditReps] = useState(set.reps);
@@ -100,7 +102,12 @@ export default function SetRow({ set, badge, onUpdate, onDelete }: SetRowProps) 
         <span className="text-text-secondary text-sm">Set {set.setNumber}</span>
         <div className="flex items-center gap-4">
           <span className="text-text-primary font-medium text-sm">
-            {set.weight} lbs
+            {(() => {
+              if (set.weight > 0) return `${set.weight} lbs`;
+              const bw = settingsService.getBodyWeight();
+              if (isBodyweight) return bw ? `BW (${bw})` : 'BW';
+              return bw ? `BW (${bw})` : '0 lbs';
+            })()}
           </span>
           <span className="text-text-primary font-medium text-sm">
             {set.reps} reps

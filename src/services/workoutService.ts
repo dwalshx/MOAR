@@ -27,8 +27,10 @@ export interface WorkoutDetail {
 }
 
 export interface WorkoutExerciseDetail {
+  id: string;
   exerciseName: string;
-  sets: { setNumber: number; weight: number; reps: number }[];
+  barType?: string;
+  sets: { id: string; setNumber: number; weight: number; reps: number }[];
   volume: number;
   notes?: string;
 }
@@ -462,8 +464,10 @@ export const workoutService = {
       }
 
       exerciseDetails.push({
+        id: ex.id,
         exerciseName: ex.exerciseName,
-        sets: sets.map(s => ({ setNumber: s.setNumber, weight: s.weight, reps: s.reps })),
+        barType: ex.barType,
+        sets: sets.map(s => ({ id: s.id, setNumber: s.setNumber, weight: s.weight, reps: s.reps })),
         volume: exVolume,
         notes: ex.notes,
       });
