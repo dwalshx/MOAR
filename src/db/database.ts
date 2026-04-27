@@ -106,3 +106,37 @@ export class MoarDatabase extends Dexie {
 }
 
 export const db = new MoarDatabase();
+
+/**
+ * Open the database, recovering from the "Not yet support for changing
+ * primary key" error that occurs when upgrading from a pre-UUID schema.
+ *
+ * If detected, we wipe the local DB and re-open at the latest schema.
+ * Cloud sync (when signed in) will repopulate from Supabase.
+ *
+ * Call this once at app startup before any queries run.
+ */
+export async function ensureDatabase(): Promise<void> {
+  try {
+    await db.open();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const name = err instanceof Error ? err.name : '';
+
+    const isPrimaryKeyChange =
+      message.toLowerCase().includes('primary key') ||
+      name === 'UpgradeError';
+
+    if (isPrimaryKeyChange) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[db] Schema upgrade incompatible with old data — wiping local DB. ' +
+          'Data will resync from cloud if signed in.'
+      );
+      await db.delete();
+      await db.open();
+    } else {
+      throw err;
+    }
+  }
+}
