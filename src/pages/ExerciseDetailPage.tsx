@@ -5,7 +5,15 @@ import { workoutService } from '../services/workoutService';
 import { formatChartDate, formatAbsoluteDate } from '../utils/formatters';
 import ExerciseVolumeChart from '../components/exercise/ExerciseVolumeChart';
 import SessionRow from '../components/exercise/SessionRow';
+import CalendarHeatmap from '../components/home/CalendarHeatmap';
 import type { VolumeDataPoint } from '../services/workoutService';
+
+function dayKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
 export default function ExerciseDetailPage() {
   const { name } = useParams();
@@ -60,8 +68,24 @@ export default function ExerciseDetailPage() {
         <p className="text-text-secondary text-sm">No history for this exercise yet.</p>
       ) : (
         <>
+          {/* Calendar heatmap of days you did this exercise */}
+          {(() => {
+            const days = new Map<string, number>();
+            for (const s of sessions) {
+              days.set(dayKey(s.date), 3);
+            }
+            const total = sessions.length;
+            return (
+              <CalendarHeatmap
+                daysWithActivity={days}
+                totalLabel={`${total} ${total === 1 ? 'session' : 'sessions'}`}
+                title="When you did this"
+              />
+            );
+          })()}
+
           {/* Volume chart */}
-          <div className="mb-6">
+          <div className="mb-6 mt-6">
             <ExerciseVolumeChart data={chartData} />
           </div>
 
