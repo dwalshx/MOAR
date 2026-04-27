@@ -16,12 +16,13 @@ function dayKey(d: Date): string {
 export default function WorkoutHeatmap() {
   const completedWorkouts = useLiveQuery(async () => {
     const all = await db.workouts.filter(w => !w.deleted && !!w.completedAt).toArray();
-    return all.map(w => w.completedAt!);
+    return all
+      .map(w => w.completedAt)
+      .filter((d): d is Date => d instanceof Date && !isNaN(d.getTime()));
   });
 
   if (completedWorkouts === undefined) return null;
 
-  // Build the day → intensity map (1, 2, 3+ workouts)
   const days = new Map<string, number>();
   for (const d of completedWorkouts) {
     const k = dayKey(d);

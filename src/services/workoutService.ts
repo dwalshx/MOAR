@@ -201,7 +201,7 @@ export const workoutService = {
   async getRecentWorkouts(limit: number = 10): Promise<RecentWorkout[]> {
     const allWorkouts = await db.workouts.filter(notDeleted).toArray();
     const completed = allWorkouts
-      .filter(w => w.completedAt)
+      .filter(w => w.completedAt instanceof Date && w.startedAt instanceof Date)
       .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
       .slice(0, limit);
 
@@ -247,7 +247,15 @@ export const workoutService = {
   async getTemplates(): Promise<{ id: string; name: string; exercises: string[]; lastUsed: Date }[]> {
     const all = await db.workoutTemplates.filter(t => !t.deleted).toArray();
     return all
-      .map(t => ({ id: t.id, name: t.name, exercises: t.exercises, lastUsed: t.lastUsed }))
+      .map(t => ({
+        id: t.id,
+        name: t.name ?? 'Untitled',
+        exercises: Array.isArray(t.exercises) ? t.exercises : [],
+        // Defensive: handle missing/invalid lastUsed without crashing
+        lastUsed: t.lastUsed instanceof Date && !isNaN(t.lastUsed.getTime())
+          ? t.lastUsed
+          : new Date(0),
+      }))
       .sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime());
   },
 
@@ -358,7 +366,7 @@ export const workoutService = {
   async getCompletedWorkouts(offset: number = 0, limit: number = 20): Promise<RecentWorkout[]> {
     const allWorkouts = await db.workouts.filter(notDeleted).toArray();
     const completed = allWorkouts
-      .filter(w => w.completedAt)
+      .filter(w => w.completedAt instanceof Date)
       .sort((a, b) => b.completedAt!.getTime() - a.completedAt!.getTime())
       .slice(offset, offset + limit);
 
