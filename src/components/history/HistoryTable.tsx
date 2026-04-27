@@ -1,11 +1,14 @@
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/database';
+import type { WorkoutExercise, WorkoutSet } from '../../db/models';
 import { setVolume, formatAbsoluteDate } from '../../utils/formatters';
 import { settingsService } from '../../services/settingsService';
+import { workoutService } from '../../services/workoutService';
 
 interface FlatRow {
   date: string;
   workoutName: string;
+  workoutIntensity: number | null;
   exercise: string;
   setNum: number;
   weight: number;
@@ -27,16 +30,28 @@ export default function HistoryTable() {
         .filter(e => !e.deleted)
         .sortBy('order');
 
+      // Compute workout-level intensity once per workout
+      let workoutVolume = 0;
+      const exerciseSets: { ex: WorkoutExercise; sets: WorkoutSet[] }[] = [];
       for (const ex of exercises) {
         const sets = await db.workoutSets
           .where('workoutExerciseId').equals(ex.id!)
           .filter(s => !s.deleted)
           .sortBy('setNumber');
+        exerciseSets.push({ ex, sets });
+        for (const s of sets) workoutVolume += setVolume(s.weight, s.reps, bw);
+      }
+      const duration = await workoutService.getWorkoutDuration(w.id);
+      const workoutIntensity = duration && workoutVolume > 0
+        ? Math.round(workoutVolume / duration)
+        : null;
 
+      for (const { ex, sets } of exerciseSets) {
         for (const s of sets) {
           flat.push({
             date: formatAbsoluteDate(w.completedAt!),
             workoutName: w.name,
+            workoutIntensity,
             exercise: ex.exerciseName,
             setNum: s.setNumber,
             weight: s.weight,
@@ -62,11 +77,12 @@ export default function HistoryTable() {
 
   return (
     <div className="overflow-x-auto -mx-4">
-      <table className="w-full text-sm min-w-[600px]">
+      <table className="w-full text-sm min-w-[680px]">
         <thead>
           <tr className="border-b border-border text-text-secondary text-left">
             <th className="py-2 px-3 font-medium">Date</th>
             <th className="py-2 px-3 font-medium">Workout</th>
+            <th className="py-2 px-3 font-medium text-right">lbs/min</th>
             <th className="py-2 px-3 font-medium">Exercise</th>
             <th className="py-2 px-3 font-medium text-right">Set</th>
             <th className="py-2 px-3 font-medium text-right">Weight</th>
@@ -76,7 +92,6 @@ export default function HistoryTable() {
         </thead>
         <tbody>
           {rows.map((row, i) => {
-            // Show date and workout name only on first row of each group
             const prev = i > 0 ? rows[i - 1] : null;
             const showDate = !prev || prev.date !== row.date || prev.workoutName !== row.workoutName;
             const showExercise = !prev || prev.exercise !== row.exercise || showDate;
@@ -91,6 +106,9 @@ export default function HistoryTable() {
                 </td>
                 <td className="py-1.5 px-3 text-text-primary text-xs">
                   {showDate ? row.workoutName : ''}
+                </td>
+                <td className="py-1.5 px-3 text-text-secondary text-xs text-right tabular-nums">
+                  {showDate && row.workoutIntensity !== null ? row.workoutIntensity : ''}
                 </td>
                 <td className="py-1.5 px-3 text-accent text-xs">
                   {showExercise ? row.exercise : ''}

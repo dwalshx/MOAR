@@ -35,12 +35,14 @@ export default function ExerciseDetailPage() {
     );
   }
 
-  // Transform sessions to chart data points (reverse for chronological order)
+  // Transform sessions to chart data points (reverse for chronological order).
+  // Per-exercise intensity isn't currently tracked separately, so we set it null.
   const chartData: VolumeDataPoint[] = [...sessions]
     .reverse()
     .map((s) => ({
       date: formatChartDate(s.date),
       volume: s.totalVolume,
+      intensity: null,
       fullDate: formatAbsoluteDate(s.date),
     }));
 

@@ -18,6 +18,7 @@ export default function HistoryPage() {
   const [limit, setLimit] = useState(BATCH_SIZE);
   const [hasMore, setHasMore] = useState(true);
   const [view, setView] = useState<'cards' | 'table'>('cards');
+  const [chartMetric, setChartMetric] = useState<'volume' | 'intensity'>('volume');
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   const workouts = useLiveQuery(
@@ -88,7 +89,36 @@ export default function HistoryPage() {
         </div>
       </div>
 
-      <WorkoutVolumeChart data={chartData} />
+      {/* Chart metric toggle */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1 bg-bg-card rounded-lg p-1">
+          <button
+            onClick={() => setChartMetric('volume')}
+            className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
+              chartMetric === 'volume'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary'
+            }`}
+          >
+            Volume
+          </button>
+          <button
+            onClick={() => setChartMetric('intensity')}
+            className={`text-xs font-medium px-3 py-1.5 rounded-md transition-colors ${
+              chartMetric === 'intensity'
+                ? 'bg-accent text-white'
+                : 'text-text-secondary'
+            }`}
+          >
+            Intensity
+          </button>
+        </div>
+        <span className="text-text-secondary text-xs">
+          {chartMetric === 'volume' ? 'lbs moved per workout' : 'lbs per minute'}
+        </span>
+      </div>
+
+      <WorkoutVolumeChart data={chartData} metric={chartMetric} />
 
       {/* View toggle */}
       <div className="flex items-center gap-1 bg-bg-card rounded-lg p-1 self-start">

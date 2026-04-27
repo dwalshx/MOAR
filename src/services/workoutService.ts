@@ -42,9 +42,10 @@ export interface ExerciseSession {
 }
 
 export interface VolumeDataPoint {
-  date: string;     // "Apr 9" for chart axis
+  date: string;            // "Apr 9" for chart axis
   volume: number;
-  fullDate: string; // "Apr 9, 2026" for tooltip
+  intensity: number | null; // lbs/min, null if duration unknown
+  fullDate: string;        // "Apr 9, 2026" for tooltip
 }
 
 export function normalizeExerciseName(name: string): string {
@@ -530,6 +531,7 @@ export const workoutService = {
     const data = workouts.map(w => ({
       date: w.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
       volume: w.totalVolume,
+      intensity: w.intensity,
       fullDate: w.completedAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     }));
     // Reverse so oldest is first (left-to-right chronological for chart)
