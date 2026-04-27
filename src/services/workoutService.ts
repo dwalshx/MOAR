@@ -242,6 +242,50 @@ export const workoutService = {
     return workoutId;
   },
 
+  // --- Manual template (routine) management ---
+
+  async getTemplates(): Promise<{ id: string; name: string; exercises: string[]; lastUsed: Date }[]> {
+    const all = await db.workoutTemplates.filter(t => !t.deleted).toArray();
+    return all
+      .map(t => ({ id: t.id, name: t.name, exercises: t.exercises, lastUsed: t.lastUsed }))
+      .sort((a, b) => b.lastUsed.getTime() - a.lastUsed.getTime());
+  },
+
+  async createTemplate(name: string, exercises: string[] = []): Promise<string> {
+    const id = uuid();
+    const now = new Date();
+    await db.workoutTemplates.add({
+      id,
+      name,
+      exercises: exercises.map(e => normalizeExerciseName(e)),
+      lastUsed: now,
+      updatedAt: now,
+      deleted: false,
+    });
+    return id;
+  },
+
+  async renameTemplate(templateId: string, name: string): Promise<void> {
+    await db.workoutTemplates.update(templateId, { name, updatedAt: new Date() });
+  },
+
+  async setTemplateExercises(templateId: string, exercises: string[]): Promise<void> {
+    await db.workoutTemplates.update(templateId, {
+      exercises: exercises.map(e => normalizeExerciseName(e)),
+      updatedAt: new Date(),
+    });
+  },
+
+  async deleteTemplate(templateId: string): Promise<void> {
+    await db.workoutTemplates.update(templateId, { deleted: true, updatedAt: new Date() });
+  },
+
+  async startWorkoutFromTemplateId(templateId: string): Promise<string | null> {
+    const template = await db.workoutTemplates.get(templateId);
+    if (!template || template.deleted) return null;
+    return this.startWorkoutFromTemplate(template.name);
+  },
+
   async upsertTemplate(workoutId: string): Promise<void> {
     const workout = await db.workouts.get(workoutId);
     if (!workout) return;
